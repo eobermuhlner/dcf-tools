@@ -30,6 +30,9 @@ export const validate = async (
 
 export { validateDCF as validateFull };
 
+// Export readDCFFile function for use in other modules
+export { readDCFFile } from '../utils/index';
+
 export const normalize = async (document: unknown, sourcePath?: string): Promise<unknown> => {
   if (typeof document !== 'object' || document === null) {
     throw new Error('Document must be an object');

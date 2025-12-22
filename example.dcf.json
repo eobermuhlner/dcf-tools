@@ -1,0 +1,74 @@
+{
+  "dcf_version": "1.0.0",
+  "profile": "standard",
+  "tokens": {
+    "colors": {
+      "primary": "#007acc",
+      "secondary": "#6c757d",
+      "success": "#28a745",
+      "danger": "#dc3545",
+      "warning": "#ffc107",
+      "info": "#17a2b8"
+    },
+    "spacing": {
+      "xs": "0.25rem",
+      "sm": "0.5rem",
+      "md": "1rem",
+      "lg": "1.5rem",
+      "xl": "3rem"
+    },
+    "typography": {
+      "fontFamily": "Arial, sans-serif",
+      "fontSize": {
+        "small": "0.875rem",
+        "medium": "1rem",
+        "large": "1.25rem",
+        "xlarge": "1.5rem"
+      }
+    }
+  },
+  "components": {
+    "Button": {
+      "type": "button",
+      "styles": {
+        "backgroundColor": "{colors.primary}",
+        "color": "white",
+        "padding": "{spacing.md}",
+        "borderRadius": "4px",
+        "border": "none",
+        "cursor": "pointer"
+      }
+    },
+    "Card": {
+      "type": "div",
+      "styles": {
+        "backgroundColor": "white",
+        "border": "1px solid #ddd",
+        "borderRadius": "8px",
+        "padding": "{spacing.lg}",
+        "boxShadow": "0 2px 4px rgba(0,0,0,0.1)"
+      }
+    }
+  },
+  "layouts": {
+    "MainLayout": {
+      "type": "div",
+      "styles": {
+        "display": "flex",
+        "flexDirection": "column",
+        "minHeight": "100vh"
+      },
+      "children": [
+        {
+          "component": "Header"
+        },
+        {
+          "component": "Content"
+        },
+        {
+          "component": "Footer"
+        }
+      ]
+    }
+  }
+}

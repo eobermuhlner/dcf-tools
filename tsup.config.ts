@@ -15,6 +15,7 @@ export default defineConfig([
     outExtension() {
       return { js: '.js' };
     },
+    external: ['vite', 'express', 'chokidar', 'open'], // Exclude heavy dependencies from CLI bundle
   },
   {
     entry: ['src/lib/index.ts'],
@@ -27,5 +28,6 @@ export default defineConfig([
     outExtension() {
       return { js: '.js' };
     },
+    external: ['vite', 'express', 'chokidar', 'open'], // Exclude heavy dependencies from lib bundle
   }
 ]);

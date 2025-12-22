@@ -35,6 +35,7 @@ Currently, the following commands are available:
 - `dcf normalize` - Transform DCF documents to canonical JSON format
 - `dcf inspect` - Inspect DCF documents (implementation pending)
 - `dcf lint` - Lint DCF documents (implementation pending)
+- `dcf preview` - Start a local web server to preview DCF documents visually
 
 ### Global Options
 - `--version` - Show version information
@@ -100,6 +101,46 @@ dcf normalize document.json --out output.json
 
 - `0` - Success (document normalized)
 - `2` - Tool failure (file not found, invalid format, etc.)
+
+### Preview Command
+
+The `dcf preview` command starts a local web server to visually preview DCF documents in a browser with real-time updates.
+
+#### Usage
+
+```bash
+# Start preview server for a DCF document
+dcf preview path/to/document.json
+
+# Start preview server on a specific port
+dcf preview document.json --port 8080
+
+# Start preview server on a specific host
+dcf preview document.json --host 0.0.0.0
+
+# Start preview server and automatically open browser
+dcf preview document.json --open
+```
+
+#### Options
+
+- `<file>` - Path to DCF document to preview (required)
+- `--port <port>` - Port to run the preview server on (default: 3000)
+- `--host <host>` - Host to bind the server to (default: localhost)
+- `--open` - Open the preview in the default browser (default: false)
+
+#### Features
+
+- Real-time preview with hot reload when DCF file changes
+- Visual representation of tokens, components, and layouts
+- Color previews for color tokens
+- Validation error display in the UI
+- File change detection and automatic refresh
+
+#### Exit Codes
+
+- `0` - Success (server terminated normally)
+- `2` - Tool failure (file not found, invalid format, server error, etc.)
 
 ## Development
 
