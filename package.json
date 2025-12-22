@@ -1,0 +1,61 @@
+{
+  "name": "dcf-tools",
+  "version": "0.1.0",
+  "description": "Command-line tools for DCF (Data Contract Framework)",
+  "main": "./dist/lib/index.js",
+  "types": "./dist/lib/index.d.ts",
+  "bin": {
+    "dcf": "./dist/cli.js"
+  },
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/lib/index.d.mts",
+        "default": "./dist/lib/index.js"
+      },
+      "require": {
+        "types": "./dist/lib/index.d.ts",
+        "default": "./dist/lib/index.js"
+      }
+    },
+    "./cli": {
+      "require": "./dist/cli.js"
+    }
+  },
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint": "eslint . --ext .ts,.tsx",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "type-check": "tsc --noEmit"
+  },
+  "keywords": [
+    "dcf",
+    "data-contract-framework",
+    "cli",
+    "validation",
+    "yaml",
+    "json"
+  ],
+  "author": "DCF Tools Team",
+  "license": "MIT",
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "dependencies": {
+    "commander": "^12.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "tsup": "^8.0.0",
+    "typescript": "^5.0.0",
+    "vitest": "^1.0.0",
+    "@typescript-eslint/eslint-plugin": "^6.0.0",
+    "@typescript-eslint/parser": "^6.0.0",
+    "eslint": "^8.0.0",
+    "prettier": "^3.0.0"
+  }
+}
