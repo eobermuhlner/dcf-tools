@@ -75,20 +75,13 @@ export async function validateSchema(dcfDocument: any): Promise<ValidationResult
     });
     return result;
   }
-  
-  if (!dcfDocument.profile) {
-    result.ok = false;
-    result.errors.push({
-      code: 'E_SCHEMA',
-      message: 'Missing required field: profile',
-      path: ''
-    });
-    return result;
-  }
+
+  // profile is optional, so we don't need to check for it
   
   // Store document metadata
   result.dcf_version = dcfDocument.dcf_version;
-  result.profile = dcfDocument.profile;
+  // Use 'standard' as default if profile is not provided (per schema)
+  result.profile = dcfDocument.profile || 'standard';
   
   try {
     // Fetch the appropriate schema based on the dcf_version
