@@ -17,9 +17,6 @@ export interface DCFDocument {
 export const validate = async (
   document: string | DCFDocument,
   options: {
-    project?: string;
-    manifest?: string;
-    target?: string;
     strictWarnings?: boolean;
   } = {}
 ): Promise<{ valid: boolean; errors?: string[] }> => {

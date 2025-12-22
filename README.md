@@ -48,27 +48,18 @@ The `dcf validate` command validates DCF documents against both the official JSO
 
 ```bash
 # Validate a single DCF document
-dcf validate --file path/to/document.json
-
-# Validate a multi-file DCF project
-dcf validate --project path/to/project
-
-# Validate a specific project from a manifest with multiple projects
-dcf validate --project path/to/project --target web
+dcf validate path/to/document.json
 
 # Output in JSON format
-dcf validate --file document.json --format json
+dcf validate document.json --format json
 
 # Treat warnings as errors
-dcf validate --file document.json --strict-warnings
+dcf validate document.json --strict-warnings
 ```
 
 #### Options
 
-- `--project <path>` - Project root directory (default: current directory)
-- `--manifest <path>` - Path to dcf.project.yaml (default: `<project>/dcf.project.yaml`)
-- `--target <projectName>` - Specific project name if manifest has multiple projects
-- `--file <path>` - Path to single DCF document (alternative to --project)
+- `[file]` - Path to DCF document to validate (argument, not flag)
 - `--format <format>` - Output format: json or text (default: text unless CI=true)
 - `--strict-warnings` - Treat warnings as errors (exit code 1)
 
@@ -102,8 +93,7 @@ The `examples/` directory contains various DCF documents demonstrating different
 
 You can validate examples using:
 ```bash
-dcf validate --file examples/basic/basic.json
-dcf validate --project examples/project-example
+dcf validate examples/basic/basic.json
 ```
 
 ### Project Structure

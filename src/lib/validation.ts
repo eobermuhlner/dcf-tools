@@ -6,11 +6,8 @@ import { loadProjectManifest, getProjectConfig, loadAndMergeProjectLayers } from
  * Main validation function that combines schema and reference validation
  */
 export async function validateDCF(
-  input: string | any, 
+  input: string | any,
   options: {
-    project?: string;
-    manifest?: string;
-    target?: string;
     strictWarnings?: boolean;
   } = {}
 ): Promise<ValidationResult> {
@@ -22,24 +19,15 @@ export async function validateDCF(
   };
 
   try {
-    // Determine if we're validating a project or a single document
-    if (options.project) {
-      // Load multi-file project
-      const manifestPath = options.manifest || `${options.project}/dcf.project.yaml`;
-      const manifest = await loadProjectManifest(manifestPath);
-      const projectConfig = getProjectConfig(manifest, options.target);
-      dcfDocument = await loadAndMergeProjectLayers(options.project, projectConfig);
+    // Load single document
+    if (typeof input === 'string') {
+      // If input is a file path, load the document
+      // Using dynamic import for ESM compatibility
+      const projectModule = await import('../validation/project.js');
+      dcfDocument = await projectModule.loadDCFDocument(input);
     } else {
-      // Load single document
-      if (typeof input === 'string') {
-        // If input is a file path, load the document
-        // Using dynamic import for ESM compatibility
-        const projectModule = await import('../validation/project.js');
-        dcfDocument = await projectModule.loadDCFDocument(input);
-      } else {
-        // Input is already a document object
-        dcfDocument = input;
-      }
+      // Input is already a document object
+      dcfDocument = input;
     }
 
     // Store document metadata if available

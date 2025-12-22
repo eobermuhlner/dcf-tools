@@ -27,11 +27,8 @@ You can validate any of these examples using the `dcf validate` command:
 
 ```bash
 # Validate a single file
-dcf validate --file examples/minimal/minimal.json
-
-# Validate a multi-file project
-dcf validate --project examples/project-example
+dcf validate examples/minimal/minimal.json
 
 # Output in JSON format
-dcf validate --file examples/basic/basic.json --format json
+dcf validate examples/basic/basic.json --format json
 ```
