@@ -32,7 +32,7 @@ npm link
 Currently, the following commands are available:
 
 - `dcf validate` - Validate DCF documents against schema and reference rules
-- `dcf normalize` - Normalize DCF documents (implementation pending)
+- `dcf normalize` - Transform DCF documents to canonical JSON format
 - `dcf inspect` - Inspect DCF documents (implementation pending)
 - `dcf lint` - Lint DCF documents (implementation pending)
 
@@ -68,6 +68,38 @@ dcf validate document.json --strict-warnings
 - `0` - Success (document is valid)
 - `1` - Validation errors found
 - `2` - Tool failure (network issues, file not found, etc.)
+
+### Normalize Command
+
+The `dcf normalize` command transforms DCF documents to canonical JSON format with stable key ordering.
+
+#### Usage
+
+```bash
+# Normalize a DCF document to JSON
+dcf normalize path/to/document.json
+
+# Output in YAML format
+dcf normalize document.json --format yaml
+
+# Pretty-print output
+dcf normalize document.json --pretty
+
+# Write output to file
+dcf normalize document.json --out output.json
+```
+
+#### Options
+
+- `[file]` - Path to DCF document to normalize (argument, not flag)
+- `--out <file>` - Output file (default: stdout)
+- `--format <format>` - Output format: json or yaml (default: json)
+- `--pretty` - Pretty-print output for readability
+
+#### Exit Codes
+
+- `0` - Success (document normalized)
+- `2` - Tool failure (file not found, invalid format, etc.)
 
 ## Development
 

@@ -32,3 +32,16 @@ dcf validate examples/minimal/minimal.json
 # Output in JSON format
 dcf validate examples/basic/basic.json --format json
 ```
+
+You can also normalize these examples using the `dcf normalize` command:
+
+```bash
+# Normalize a single file to canonical JSON
+dcf normalize examples/minimal/minimal.json
+
+# Output in YAML format
+dcf normalize examples/basic/basic.json --format yaml
+
+# Pretty-print output
+dcf normalize examples/complex/complex.json --pretty
+```

@@ -6,6 +6,7 @@
  */
 
 import { validateDCF, ValidationError, ValidationResult as LibValidationResult } from './validation';
+import { normalizeDCF as normalizeDCFImpl } from '../normalization/core';
 
 export interface DCFDocument {
   dcf_version: string;
@@ -29,9 +30,11 @@ export const validate = async (
 
 export { validateDCF as validateFull };
 
-export const normalize = async (document: unknown): Promise<unknown> => {
-  console.warn('Normalization logic not yet implemented');
-  return document;
+export const normalize = async (document: unknown, sourcePath?: string): Promise<unknown> => {
+  if (typeof document !== 'object' || document === null) {
+    throw new Error('Document must be an object');
+  }
+  return normalizeDCFImpl(document, sourcePath);
 };
 
 export const inspect = async (document: unknown): Promise<unknown> => {
