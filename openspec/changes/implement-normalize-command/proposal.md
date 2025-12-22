@@ -10,10 +10,9 @@ According to the project architecture, normalization creates canonical JSON with
 
 - Implement the `dcf normalize` command with full functionality
 - Add canonical JSON output with stable key ordering
-- Support multi-file DCF projects with layering and overlays via `dcf.project.yaml`
 - Implement proper output formatting (JSON/YAML, pretty printing)
-- Add command-line options for output file, format, pretty printing, and target project
-- Include meta section with provenance information (layer list, resolved version/profile)
+- Add command-line options for output file, format, and pretty printing
+- Include meta section with provenance information (resolved version/profile)
 
 ## Impact
 

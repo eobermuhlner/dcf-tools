@@ -79,36 +79,16 @@ The system SHALL include provenance information in normalized output.
 - **AND** meta section includes layer information (single file in this case)
 - **AND** exits with code 0
 
-#### Scenario: Provenance in multi-file project
+### Requirement: Single Document Normalization
 
-- **GIVEN** a multi-file DCF project with manifest
-- **WHEN** user runs `dcf normalize project/`
-- **THEN** the system outputs JSON with `meta` section
-- **AND** meta section includes `dcf_version` and `profile` from merged result
-- **AND** meta section includes list of all layers that were merged
-- **AND** exits with code 0
+The system SHALL support normalization of single DCF documents.
 
-### Requirement: Multi-File Project Support
+#### Scenario: Valid single document normalization
 
-The system SHALL support normalization of multi-file DCF projects using `dcf.project.yaml` manifests.
-
-#### Scenario: Valid multi-file project normalization
-
-- **GIVEN** a project directory with `dcf.project.yaml` manifest
-- **AND** multiple DCF layers defined in the manifest
-- **WHEN** user runs `dcf normalize project/`
-- **THEN** the system loads all layers according to the manifest
-- **AND** merges layers according to merge rules (deep-merge for objects, replace for arrays)
-- **AND** normalizes the merged result
-- **AND** includes all source layers in provenance metadata
-- **AND** exits with code 0
-
-#### Scenario: Target specific project
-
-- **GIVEN** a manifest with multiple projects defined
-- **WHEN** user runs `dcf normalize project/ --target web`
-- **THEN** the system normalizes only the specified project
-- **AND** ignores other projects in the manifest
+- **GIVEN** a single DCF document
+- **WHEN** user runs `dcf normalize document.json`
+- **THEN** the system normalizes the document
+- **AND** outputs canonical JSON with stable key ordering
 - **AND** exits with code 0
 
 ### Requirement: Exit Code Convention for Normalization

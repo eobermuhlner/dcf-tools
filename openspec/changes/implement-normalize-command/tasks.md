@@ -13,44 +13,33 @@
 - [ ] 2.3 Add support for writing to output file or stdout
 - [ ] 2.4 Ensure deterministic formatting regardless of input format
 
-## 3. Multi-File Project Support
+## 3. Command Implementation
 
-- [ ] 3.1 Reuse project loading functionality from validation command
-- [ ] 3.2 Implement layer merging according to DCF merge rules
-- [ ] 3.3 Add support for target project selection in multi-project manifests
-- [ ] 3.4 Include all source layers in provenance metadata
+- [ ] 3.1 Create src/commands/normalize.ts with full implementation
+- [ ] 3.2 Add file argument handling
+- [ ] 3.3 Add --out option for specifying output file
+- [ ] 3.4 Add --format option with json/yaml values
+- [ ] 3.5 Add --pretty flag for human-readable output
+- [ ] 3.6 Implement proper error handling and exit codes
 
-## 4. Command Implementation
+## 4. Integration with Existing Code
 
-- [ ] 4.1 Create src/commands/normalize.ts with full implementation
-- [ ] 4.2 Add file/project argument handling
-- [ ] 4.3 Add --out option for specifying output file
-- [ ] 4.4 Add --format option with json/yaml values
-- [ ] 4.5 Add --pretty flag for human-readable output
-- [ ] 4.6 Add --target option for selecting specific project in manifest
-- [ ] 4.7 Implement proper error handling and exit codes
+- [ ] 4.1 Ensure compatibility with existing validation infrastructure
+- [ ] 4.2 Add normalization function to library API
 
-## 5. Integration with Existing Code
+## 5. Testing
 
-- [ ] 5.1 Update project loading utilities to support normalization needs
-- [ ] 5.2 Ensure compatibility with existing validation infrastructure
-- [ ] 5.3 Add normalization function to library API
+- [ ] 5.1 Create unit tests for canonical JSON transformation
+- [ ] 5.2 Test deterministic output with identical inputs
+- [ ] 5.3 Test output format options (JSON, YAML, pretty)
+- [ ] 5.4 Test output destination options (file, stdout)
+- [ ] 5.5 Test provenance metadata inclusion
+- [ ] 5.6 Verify exit codes work correctly in all scenarios
 
-## 6. Testing
+## 6. Documentation
 
-- [ ] 6.1 Create unit tests for canonical JSON transformation
-- [ ] 6.2 Test deterministic output with identical inputs
-- [ ] 6.3 Test output format options (JSON, YAML, pretty)
-- [ ] 6.4 Test output destination options (file, stdout)
-- [ ] 6.5 Test multi-file project normalization
-- [ ] 6.6 Test target project selection
-- [ ] 6.7 Test provenance metadata inclusion
-- [ ] 6.8 Verify exit codes work correctly in all scenarios
-
-## 7. Documentation
-
-- [ ] 7.1 Update command help text with usage examples
-- [ ] 7.2 Document all available options and their effects
-- [ ] 7.3 Create sample normalization output examples
-- [ ] 7.4 Update main README with normalize command documentation
-- [ ] 7.5 Add usage examples for common normalization scenarios
+- [ ] 6.1 Update command help text with usage examples
+- [ ] 6.2 Document all available options and their effects
+- [ ] 6.3 Create sample normalization output examples
+- [ ] 6.4 Update main README with normalize command documentation
+- [ ] 6.5 Add usage examples for common normalization scenarios

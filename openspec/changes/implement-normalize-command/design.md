@@ -17,13 +17,12 @@ The `dcf normalize` command needs to transform DCF documents into canonical JSON
 
 **Goals:**
 - Transform DCF documents to canonical JSON with stable key ordering
-- Support multi-file projects with `dcf.project.yaml` manifests
 - Provide both JSON and YAML output formats
 - Include provenance information in meta section
 - Support pretty-printed output for readability
-- Handle project targeting for multi-project manifests
 
 **Non-Goals:**
+- Handle multi-file projects or project manifests
 - Perform validation (reserved for `dcf validate` command)
 - Perform semantic analysis (reserved for `dcf lint` command)
 - Provide interactive features
@@ -50,24 +49,12 @@ The `dcf normalize` command needs to transform DCF documents into canonical JSON
 - **Alternatives considered:**
   - Only JSON support: Would limit usability for human editing
 
-### Decision 3: Multi-file project support
-- **Why:** Must handle layering and composition as per DCF architecture
-- **Process:**
-  1. Load project manifest if specified
-  2. Load and merge layers according to merge rules
-  3. Normalize the merged result
-- **Merge rules:**
-  - Objects: deep-merge
-  - Arrays: replace (not merge)
-  - Other values: replace
-
-### Decision 4: Command structure and options
+### Decision 3: Command structure and options
 ```
-dcf normalize [options] [file|project]
+dcf normalize [options] [file]
 --out <file>            Output file (default: stdout)
 --format json|yaml      Output format (default: json)
 --pretty                Pretty-print output for readability
---target <projectName>  Target project name for multi-project manifests
 ```
 
 - **Why:** Follows requirements from multi-repo instructions
