@@ -1,7 +1,7 @@
 {
   "name": "dcf-tools",
   "version": "0.1.0",
-  "description": "Command-line tools for DCF (Data Contract Framework)",
+  "description": "Command-line tools for DCF (Design Concept Format)",
   "main": "./dist/lib/index.js",
   "types": "./dist/lib/index.d.ts",
   "bin": {
@@ -46,16 +46,23 @@
     "node": ">=20.0.0"
   },
   "dependencies": {
-    "commander": "^12.0.0"
+    "ajv": "^8.17.1",
+    "ajv-formats": "^3.0.1",
+    "commander": "^12.0.0",
+    "js-yaml": "^4.1.1",
+    "node-fetch": "^3.3.2"
   },
   "devDependencies": {
+    "@types/ajv": "^0.0.5",
+    "@types/js-yaml": "^4.0.9",
     "@types/node": "^20.0.0",
-    "tsup": "^8.0.0",
-    "typescript": "^5.0.0",
-    "vitest": "^1.0.0",
+    "@types/node-fetch": "^2.6.13",
     "@typescript-eslint/eslint-plugin": "^6.0.0",
     "@typescript-eslint/parser": "^6.0.0",
     "eslint": "^8.0.0",
-    "prettier": "^3.0.0"
+    "prettier": "^3.0.0",
+    "tsup": "^8.0.0",
+    "typescript": "^5.0.0",
+    "vitest": "^1.0.0"
   }
 }

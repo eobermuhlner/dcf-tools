@@ -1,0 +1,8 @@
+dcf_project: 1
+name: example-project
+projects:
+  web:
+    root: .
+    layers:
+      - tokens/base.json
+      - components/base.json

@@ -1,0 +1,73 @@
+{
+  "dcf_version": "1.0.0",
+  "profile": "standard",
+  "tokens": {
+    "colors": {
+      "primary": "#007acc",
+      "secondary": "#6c757d",
+      "success": "#28a745",
+      "danger": "#dc3545"
+    },
+    "spacing": {
+      "xs": "0.25rem",
+      "sm": "0.5rem",
+      "md": "1rem",
+      "lg": "1.5rem",
+      "xl": "3rem"
+    },
+    "typography": {
+      "fontFamily": {
+        "primary": "Arial, sans-serif",
+        "heading": "'Helvetica Neue', Arial, sans-serif"
+      },
+      "fontSize": {
+        "sm": "0.875rem",
+        "base": "1rem",
+        "lg": "1.125rem",
+        "xl": "1.25rem",
+        "h1": "2.5rem",
+        "h2": "2rem",
+        "h3": "1.75rem"
+      }
+    }
+  },
+  "components": {
+    "Button": {
+      "type": "button",
+      "props": {
+        "variant": {
+          "type": "enum",
+          "values": ["primary", "secondary", "success", "danger"]
+        },
+        "size": {
+          "type": "enum",
+          "values": ["sm", "md", "lg"]
+        }
+      },
+      "style": {
+        "padding": "{spacing.md}",
+        "borderRadius": "4px",
+        "border": "1px solid {colors.secondary}",
+        "backgroundColor": "{colors.primary}",
+        "color": "white",
+        "fontSize": "{typography.fontSize.base}"
+      }
+    },
+    "Card": {
+      "type": "container",
+      "props": {
+        "elevation": {
+          "type": "enum",
+          "values": ["low", "medium", "high"]
+        }
+      },
+      "style": {
+        "borderRadius": "8px",
+        "border": "1px solid #e0e0e0",
+        "backgroundColor": "white",
+        "padding": "{spacing.lg}",
+        "boxShadow": "0 2px 4px rgba(0,0,0,0.1)"
+      }
+    }
+  }
+}

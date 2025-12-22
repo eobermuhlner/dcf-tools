@@ -1,0 +1,152 @@
+import Ajv from 'ajv';
+import addFormats from 'ajv-formats';
+
+// Define validation result types
+export interface ValidationError {
+  code: string;
+  message: string;
+  path: string;
+}
+
+export interface ValidationResult {
+  ok: boolean;
+  dcf_version?: string;
+  profile?: string;
+  errors: ValidationError[];
+  warnings: ValidationError[];
+}
+
+// Supported DCF versions (major versions)
+const SUPPORTED_MAJOR_VERSIONS = [1]; // Currently only supporting v1.x.x
+
+/**
+ * Fetches the JSON schema for the specified DCF version
+ */
+export async function fetchSchema(dcfVersion: string): Promise<any> {
+  // Parse the version to check major version compatibility
+  const versionParts = dcfVersion.split('.').map(Number);
+  const [major] = versionParts;
+
+  if (!SUPPORTED_MAJOR_VERSIONS.includes(major)) {
+    throw new Error(`Unsupported major version: ${major}. Only major versions ${SUPPORTED_MAJOR_VERSIONS.join(', ')} are supported.`);
+  }
+
+  // Construct the schema URL based on the version
+  const schemaUrl = `https://eobermuhlner.github.io/dcf-spec/schema/v${dcfVersion}/dcf.schema.json`;
+
+  // Dynamically import node-fetch to avoid module resolution issues
+  const fetchModule = await import('node-fetch');
+  const fetch = fetchModule.default;
+
+  try {
+    const response = await fetch(schemaUrl);
+    if (!response.ok) {
+      throw new Error(`Failed to fetch schema from ${schemaUrl}: ${response.status} ${response.statusText}`);
+    }
+    return await response.json();
+  } catch (error) {
+    // Check if it's a newer minor version (within same major)
+    if (major === SUPPORTED_MAJOR_VERSIONS[0] && error instanceof Error && error.message.includes('404')) {
+      // Try to get the latest supported version of the same major
+      // For now, we'll just throw the original error
+      throw error;
+    }
+    throw error;
+  }
+}
+
+/**
+ * Validates a DCF document against the appropriate JSON schema
+ */
+export async function validateSchema(dcfDocument: any): Promise<ValidationResult> {
+  const result: ValidationResult = {
+    ok: true,
+    errors: [],
+    warnings: []
+  };
+  
+  // Check if document has required fields
+  if (!dcfDocument.dcf_version) {
+    result.ok = false;
+    result.errors.push({
+      code: 'E_SCHEMA',
+      message: 'Missing required field: dcf_version',
+      path: ''
+    });
+    return result;
+  }
+  
+  if (!dcfDocument.profile) {
+    result.ok = false;
+    result.errors.push({
+      code: 'E_SCHEMA',
+      message: 'Missing required field: profile',
+      path: ''
+    });
+    return result;
+  }
+  
+  // Store document metadata
+  result.dcf_version = dcfDocument.dcf_version;
+  result.profile = dcfDocument.profile;
+  
+  try {
+    // Fetch the appropriate schema based on the dcf_version
+    const schema = await fetchSchema(dcfDocument.dcf_version);
+    
+    // Parse the version to check compatibility
+    const versionParts = dcfDocument.dcf_version.split('.').map(Number);
+    const [major, minor] = versionParts;
+    
+    if (!SUPPORTED_MAJOR_VERSIONS.includes(major)) {
+      result.ok = false;
+      result.errors.push({
+        code: 'E_SCHEMA',
+        message: `Unsupported major version: ${major}. Only major versions ${SUPPORTED_MAJOR_VERSIONS.join(', ')} are supported.`,
+        path: 'dcf_version'
+      });
+      return result;
+    }
+    
+    // Check if it's a newer minor version (within same major)
+    // For now, we'll just issue a warning
+    // In a real implementation, we'd need to determine our supported minor version
+    if (major === SUPPORTED_MAJOR_VERSIONS[0] && minor > 0) { // Assuming we support up to 1.0.x
+      result.warnings.push({
+        code: 'W_VERSION',
+        message: `Newer minor version ${dcfDocument.dcf_version} detected. Validation may not cover all new features.`,
+        path: 'dcf_version'
+      });
+    }
+    
+    // Create Ajv instance with formats
+    const ajv = new Ajv({ allErrors: true });
+    addFormats(ajv);
+    
+    // Compile the schema
+    const validate = ajv.compile(schema);
+    
+    // Validate the document
+    const valid = validate(dcfDocument);
+    
+    if (!valid && validate.errors) {
+      result.ok = false;
+      for (const error of validate.errors) {
+        result.errors.push({
+          code: 'E_SCHEMA',
+          message: error.message || 'Schema validation error',
+          path: error.instancePath || error.schemaPath || ''
+        });
+      }
+    }
+  } catch (error) {
+    result.ok = false;
+    result.errors.push({
+      code: 'E_SCHEMA',
+      message: error instanceof Error ? error.message : 'Unknown schema validation error',
+      path: ''
+    });
+  }
+  
+  return result;
+}

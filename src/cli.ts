@@ -9,7 +9,7 @@ const program = new Command();
 
 program
   .name('dcf')
-  .description('Command-line tools for Data Contract Framework (DCF)')
+  .description('Command-line tools for Design Concept Format (DCF)')
   .version(version);
 
 // Register placeholder commands
