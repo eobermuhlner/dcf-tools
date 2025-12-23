@@ -1,0 +1,61 @@
+{
+  "dcf_version": "1.0.0",
+  "profile": "standard",
+  "tokens": {
+    "colors": {
+      "primary": "#007acc",
+      "background": "#f5f5f5"
+    },
+    "spacing": {
+      "small": 8,
+      "medium": 16,
+      "large": 24
+    }
+  },
+  "components": {
+    "Card": {
+      "type": "div",
+      "styles": {
+        "backgroundColor": "{colors.background}",
+        "padding": "{spacing.medium}",
+        "borderRadius": 8,
+        "border": "1px solid #ddd"
+      }
+    },
+    "Title": {
+      "type": "h1",
+      "styles": {
+        "color": "{colors.primary}",
+        "fontSize": 24,
+        "fontWeight": "bold"
+      }
+    }
+  },
+  "layouts": {
+    "BasicLayout": {
+      "type": "div",
+      "styles": {
+        "padding": "{spacing.medium}",
+        "backgroundColor": "white"
+      },
+      "children": [
+        {
+          "component": "Title",
+          "text": "Basic Card Example"
+        },
+        {
+          "component": "Card",
+          "children": [
+            {
+              "type": "p",
+              "text": "This is a basic card component with padding and background color.",
+              "styles": {
+                "margin": 0
+              }
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

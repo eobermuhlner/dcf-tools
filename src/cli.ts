@@ -28,7 +28,7 @@ program
   .option('--open', 'Open the preview in the default browser', false)
   .action(async (file, options) => {
     // Dynamically import the preview functionality when needed
-    const { startPreviewServer } = await import('./lib/preview/preview-server');
+    const { startPreviewServer } = await import('./lib/preview/preview-server.js');
 
     try {
       const port = parseInt(options.port, 10);

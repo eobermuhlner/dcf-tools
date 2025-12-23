@@ -1,7 +1,9 @@
-import { validateSchema, validateReferences } from './schema';
+import { validateSchema, fetchSchema } from './schema';
+import { validateReferences } from './references';
 import { readDCFFile } from '../utils/index';
 
-export { validateSchema, validateReferences, fetchSchema } from './schema';
+export { validateSchema, fetchSchema } from './schema';
+export { validateReferences } from './references';
 export type { ValidationError, ValidationResult } from './schema';
 
 /**

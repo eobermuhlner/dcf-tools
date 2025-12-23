@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { RenderNodeView } from '../../render/RenderNodeView.js';
+import { dcfToRenderTree } from '../../render/dcfToRenderTree.js';
 
 interface DCFData {
   document: any;
@@ -11,6 +13,7 @@ const PreviewApp: React.FC = () => {
   const [dcfData, setDcfData] = useState<DCFData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showVisual, setShowVisual] = useState(true); // Toggle between visual and JSON view
 
   useEffect(() => {
     const fetchData = async () => {
@@ -20,8 +23,8 @@ const PreviewApp: React.FC = () => {
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
-        const data: DCFData = await response.json();
-        setDcfData(data);
+        const data = await response.json();
+        setDcfData(data as DCFData);
         setError(null);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'An unknown error occurred');
@@ -36,8 +39,8 @@ const PreviewApp: React.FC = () => {
     const eventSource = new EventSource('/api/dcf-updates');
     eventSource.onmessage = (event) => {
       try {
-        const data: DCFData = JSON.parse(event.data);
-        setDcfData(data);
+        const data = JSON.parse(event.data);
+        setDcfData(data as DCFData);
       } catch (err) {
         console.error('Error parsing SSE data:', err);
       }
@@ -99,9 +102,33 @@ const PreviewApp: React.FC = () => {
     );
   }
 
+  // Convert DCF document to render tree for visual representation
+  let renderTree = null;
+  try {
+    renderTree = dcfToRenderTree(dcfData.document);
+  } catch (err) {
+    console.error('Error converting DCF to render tree:', err);
+  }
+
   return (
     <div className="preview-container">
-      <h1>DCF Preview</h1>
+      <div className="header">
+        <h1>DCF Preview</h1>
+        <div className="view-toggle">
+          <button
+            onClick={() => setShowVisual(true)}
+            className={showVisual ? 'active' : ''}
+          >
+            Visual View
+          </button>
+          <button
+            onClick={() => setShowVisual(false)}
+            className={!showVisual ? 'active' : ''}
+          >
+            JSON View
+          </button>
+        </div>
+      </div>
 
       <div className="dcf-info">
         <h2>Document Information</h2>
@@ -110,41 +137,52 @@ const PreviewApp: React.FC = () => {
       </div>
 
       <div className="dcf-content">
-        {dcfData.document.tokens && (
-          <>
-            <h2>Tokens</h2>
-            <div className="tokens-preview">
-              {Object.entries(dcfData.document.tokens).map(([name, token]: [string, any]) => (
-                <TokenPreview key={name} name={name} token={token} />
-              ))}
+        {showVisual && renderTree ? (
+          <div className="visual-preview">
+            <h2>Visual Preview</h2>
+            <div className="visual-container">
+              <RenderNodeView node={renderTree} />
             </div>
-          </>
-        )}
-
-        {dcfData.document.components && (
+          </div>
+        ) : (
           <>
-            <h2>Components</h2>
-            <div className="components-preview">
-              {Object.entries(dcfData.document.components).map(([name, component]: [string, any]) => (
-                <ComponentPreview key={name} name={name} component={component} />
-              ))}
-            </div>
-          </>
-        )}
+            {dcfData.document.tokens && (
+              <>
+                <h2>Tokens</h2>
+                <div className="tokens-preview">
+                  {Object.entries(dcfData.document.tokens).map(([name, token]: [string, any]) => (
+                    <TokenPreview key={name} name={name} token={token} />
+                  ))}
+                </div>
+              </>
+            )}
 
-        {dcfData.document.layouts && (
-          <>
-            <h2>Layouts</h2>
-            <div className="layouts-preview">
-              {Object.entries(dcfData.document.layouts).map(([name, layout]: [string, any]) => (
-                <LayoutPreview key={name} name={name} layout={layout} />
-              ))}
-            </div>
-          </>
-        )}
+            {dcfData.document.components && (
+              <>
+                <h2>Components</h2>
+                <div className="components-preview">
+                  {Object.entries(dcfData.document.components).map(([name, component]: [string, any]) => (
+                    <ComponentPreview key={name} name={name} component={component} />
+                  ))}
+                </div>
+              </>
+            )}
 
-        {!dcfData.document.tokens && !dcfData.document.components && !dcfData.document.layouts && (
-          <p>No tokens, components, or layouts defined in the DCF document</p>
+            {dcfData.document.layouts && (
+              <>
+                <h2>Layouts</h2>
+                <div className="layouts-preview">
+                  {Object.entries(dcfData.document.layouts).map(([name, layout]: [string, any]) => (
+                    <LayoutPreview key={name} name={name} layout={layout} />
+                  ))}
+                </div>
+              </>
+            )}
+
+            {!dcfData.document.tokens && !dcfData.document.components && !dcfData.document.layouts && (
+              <p>No tokens, components, or layouts defined in the DCF document</p>
+            )}
+          </>
         )}
       </div>
     </div>
@@ -216,6 +254,34 @@ const styles = `
     padding: 20px;
     max-width: 1200px;
     margin: 0 auto;
+  }
+
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+
+  .view-toggle button {
+    margin-right: 10px;
+    padding: 8px 16px;
+    border: 1px solid #ccc;
+    background-color: #f0f0f0;
+    cursor: pointer;
+  }
+
+  .view-toggle button.active {
+    background-color: #007acc;
+    color: white;
+  }
+
+  .visual-container {
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 20px;
+    min-height: 200px;
+    background-color: #fafafa;
   }
 
   .error-message {

@@ -5,9 +5,9 @@ import { loadProjectManifest, getProjectConfig } from '../validation/project';
 vi.mock('fs', async () => {
   const actual = await vi.importActual('fs');
   return {
-    ...actual,
+    ...(actual as any),
     promises: {
-      ...actual.promises,
+      ...(actual as any).promises,
       readFile: vi.fn(),
       stat: vi.fn(),
       readdir: vi.fn()

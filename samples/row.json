@@ -1,0 +1,65 @@
+{
+  "dcf_version": "1.0.0",
+  "profile": "standard",
+  "tokens": {
+    "colors": {
+      "primary": "#007acc",
+      "secondary": "#6c757d",
+      "success": "#28a745"
+    },
+    "spacing": {
+      "small": 8,
+      "medium": 16,
+      "large": 24
+    }
+  },
+  "components": {
+    "Button": {
+      "type": "button",
+      "styles": {
+        "backgroundColor": "{colors.primary}",
+        "color": "white",
+        "padding": "{spacing.medium}",
+        "borderRadius": 4,
+        "border": "none",
+        "cursor": "pointer",
+        "marginRight": "{spacing.small}"
+      }
+    },
+    "Container": {
+      "type": "div",
+      "styles": {
+        "padding": "{spacing.medium}",
+        "backgroundColor": "white"
+      }
+    }
+  },
+  "layouts": {
+    "RowLayout": {
+      "type": "div",
+      "layout": {
+        "direction": "row",
+        "gap": "{spacing.medium}",
+        "alignItems": "center"
+      },
+      "styles": {
+        "padding": "{spacing.medium}",
+        "backgroundColor": "#f9f9f9"
+      },
+      "children": [
+        {
+          "component": "Button",
+          "text": "Button 1"
+        },
+        {
+          "component": "Button",
+          "text": "Button 2"
+        },
+        {
+          "component": "Button",
+          "text": "Button 3"
+        }
+      ]
+    }
+  }
+}
