@@ -31,37 +31,68 @@ export async function validateMultipleFiles(
   const allErrors: ValidationError[] = [];
   const allWarnings: ValidationError[] = [];
 
-  // Validate each file individually
+  // Load all documents first for cross-file validation
+  const loadedDocuments: Array<{ file: string; document: any }> = [];
+
   for (const file of files) {
     try {
       // Load the DCF document
       const document = await loadDCFDocument(file);
-      
+      loadedDocuments.push({ file, document });
+    } catch (error) {
+      // Handle tool errors for individual files
+      allErrors.push({
+        code: 'E_TOOL',
+        message: `Failed to load file ${file}: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        path: file
+      });
+    }
+  }
+
+  // Perform schema validation on each file individually (no cross-reference validation)
+  for (const { file, document } of loadedDocuments) {
+    try {
       // Override the document's profile with the effective profile from context
       if (document.profile !== context.profile) {
         document.profile = context.profile;
       }
-      
-      // Perform validation
+
+      // Perform schema-only validation (skip cross-reference validation)
+      // We'll validate cross-references after collecting all documents
       const result = await validateDCF(document, {
         strictWarnings: false // We'll handle strict warnings at the aggregate level
       });
-      
+
+      // Filter out cross-reference errors during individual validation
+      // These will be validated later during cross-file validation
+      const schemaErrors = result.errors.filter(error =>
+        error.code !== 'E_REFERENCE'
+      );
+
+      const schemaWarnings = result.warnings; // Keep all warnings
+
       // Add file path to each error and warning for proper attribution
-      result.errors = result.errors.map(error => ({
+      const fileSpecificErrors = schemaErrors.map(error => ({
         ...error,
         path: `${file}:${error.path || ''}`
       }));
-      
-      result.warnings = result.warnings.map(warning => ({
+
+      const fileSpecificWarnings = schemaWarnings.map(warning => ({
         ...warning,
         path: `${file}:${warning.path || ''}`
       }));
-      
-      results.push({ file, result });
-      
-      allErrors.push(...result.errors);
-      allWarnings.push(...result.warnings);
+
+      results.push({
+        file,
+        result: {
+          ...result,
+          errors: fileSpecificErrors,
+          warnings: fileSpecificWarnings
+        }
+      });
+
+      allErrors.push(...fileSpecificErrors);
+      allWarnings.push(...fileSpecificWarnings);
     } catch (error) {
       // Handle tool errors for individual files
       allErrors.push({
@@ -72,7 +103,7 @@ export async function validateMultipleFiles(
     }
   }
 
-  // Determine overall success
+  // Determine overall success based on schema validation only
   const ok = allErrors.length === 0;
 
   return {

@@ -16,7 +16,6 @@ This directory contains example DCF documents demonstrating different features a
 
 ### project-example/
 - A multi-file DCF project with separate files for tokens and components
-- Includes `dcf.project.yaml` manifest file to define the project structure
 
 ### invalid/
 - `invalid.json` - An intentionally invalid DCF document with reference errors for testing validation

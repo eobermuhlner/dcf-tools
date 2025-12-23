@@ -22,7 +22,7 @@ describe('cross-file validation', () => {
               Button: {
                 tokens: {
                   primary: {
-                    backgroundColor: '{tokens.colors.primary}'
+                    backgroundColor: '{colors.primary}'
                   }
                 }
               }
@@ -46,7 +46,7 @@ describe('cross-file validation', () => {
               Button: {
                 tokens: {
                   primary: {
-                    backgroundColor: '{tokens.colors.nonexistent}'
+                    backgroundColor: '{colors.nonexistent}'
                   }
                 }
               }

@@ -30,7 +30,7 @@ export async function validateCrossFileReferences(
   for (const { file, document } of filesWithDocs) {
     // Extract tokens
     if (document.tokens) {
-      extractTokens(document.tokens, allTokens, file, 'tokens');
+      extractTokens(document.tokens, allTokens, file, '');
     }
 
     // Extract components
