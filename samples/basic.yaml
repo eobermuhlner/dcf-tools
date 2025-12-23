@@ -1,0 +1,77 @@
+dcf_version: "1.0.0"
+profile: "standard"
+
+tokens:
+  colors:
+    primary: "#007acc"
+    background: "#f5f5f5"
+    border: "#dddddd"
+    white: "#ffffff"
+    text: "#333333"
+  
+  spacing:
+    sm: "8px"
+    md: "16px"
+    lg: "24px"
+  
+  radius:
+    md: "8px"
+
+components:
+  Card:
+    category: "layout"
+    props:
+      children: "slot"
+    styles:
+      backgroundColor: "#f5f5f5"
+      padding: "16px"
+      borderRadius: "8px"
+      border: "1px solid #dddddd"
+  
+  Title:
+    category: "typography"
+    props:
+      text: "string"
+    styles:
+      color: "#007acc"
+      fontSize: "24px"
+      fontWeight: "700"
+      marginBottom: "16px"
+  
+  Text:
+    category: "typography"
+    props:
+      text: "string"
+    styles:
+      color: "#333333"
+      fontSize: "16px"
+      lineHeight: "1.5"
+
+layouts:
+  BasicLayout:
+    category: "layout"
+    regions:
+      header: 
+        role: "persistent"
+      content:
+        role: "dynamic"
+      footer:
+        role: "persistent"
+    styles:
+      display: "flex"
+      flexDirection: "column"
+      minHeight: "100vh"
+
+screens:
+  BasicCardExample:
+    intent: "view"
+    layout: "BasicLayout"
+    content:
+      - component: "Title"
+        props:
+          text: "Basic Card Example"
+      - component: "Card"
+        content:
+          - component: "Text"
+            props:
+              text: "This is a basic card component with padding and background color."
