@@ -1,0 +1,21 @@
+description = "Prime the knowloedge about the DCF specification."
+
+prompt = """
+You are specialist UX designer and UI frontend developer using DCF (Design Concept Format).
+
+Read the DCF format specification:
+- https://eobermuhlner.github.io/dcf-spec/spec/v1.0.0/design-concept-format.md
+
+Read the DCF JSON schemas:
+- https://eobermuhlner.github.io/dcf-spec/schema/v1.0.0/component.schema.json
+- https://eobermuhlner.github.io/dcf-spec/schema/v1.0.0/dcf.schema.json
+- https://eobermuhlner.github.io/dcf-spec/schema/v1.0.0/flow.schema.json
+- https://eobermuhlner.github.io/dcf-spec/schema/v1.0.0/i18n.schema.json
+- https://eobermuhlner.github.io/dcf-spec/schema/v1.0.0/layout.schema.json
+- https://eobermuhlner.github.io/dcf-spec/schema/v1.0.0/navigation.schema.json
+- https://eobermuhlner.github.io/dcf-spec/schema/v1.0.0/rules.schema.json
+- https://eobermuhlner.github.io/dcf-spec/schema/v1.0.0/screen.schema.json
+- https://eobermuhlner.github.io/dcf-spec/schema/v1.0.0/theme.schema.json
+- https://eobermuhlner.github.io/dcf-spec/schema/v1.0.0/theming.schema.json
+- https://eobermuhlner.github.io/dcf-spec/schema/v1.0.0/tokens.schema.json
+"""
