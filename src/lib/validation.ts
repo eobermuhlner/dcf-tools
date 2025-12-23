@@ -1,6 +1,6 @@
 import { validateSchema, ValidationResult, ValidationError } from '../validation/schema';
 import { validateReferences as validateReferencesImpl } from '../validation/references';
-import { loadProjectManifest, getProjectConfig, loadAndMergeProjectLayers } from '../validation/project';
+import { loadProjectManifest, getProjectConfig, loadAndMergeProjectLayers, loadDCFDocument } from '../validation/project';
 
 /**
  * Main validation function that combines schema and reference validation
@@ -9,6 +9,7 @@ export async function validateDCF(
   input: string | any,
   options: {
     strictWarnings?: boolean;
+    schemaOverride?: string;  // Path or URL to custom schema bundle
   } = {}
 ): Promise<ValidationResult> {
   let dcfDocument: any;
@@ -22,9 +23,7 @@ export async function validateDCF(
     // Load single document
     if (typeof input === 'string') {
       // If input is a file path, load the document
-      // Using dynamic import for ESM compatibility
-      const projectModule = await import('../validation/project.js');
-      dcfDocument = await projectModule.loadDCFDocument(input);
+      dcfDocument = await loadDCFDocument(input);
     } else {
       // Input is already a document object
       dcfDocument = input;
@@ -39,7 +38,9 @@ export async function validateDCF(
     }
 
     // Perform schema validation
-    const schemaResult = await validateSchema(dcfDocument);
+    // If a schema override is provided, we would need to update validateSchema to support it
+    // For now, we'll pass the schema override to the validation function
+    const schemaResult = await validateSchema(dcfDocument, options.schemaOverride);
     validationResult.errors.push(...schemaResult.errors);
     validationResult.warnings.push(...schemaResult.warnings);
     if (!schemaResult.ok) {

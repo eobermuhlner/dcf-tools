@@ -1,5 +1,7 @@
 import Ajv from 'ajv';
 import addFormats from 'ajv-formats';
+import { promises as fs } from 'fs';
+import * as path from 'path';
 
 // Define validation result types
 export interface ValidationError {
@@ -22,7 +24,12 @@ const SUPPORTED_MAJOR_VERSIONS = [1]; // Currently only supporting v1.x.x
 /**
  * Fetches the JSON schema for the specified DCF version
  */
-export async function fetchSchema(dcfVersion: string): Promise<any> {
+export async function fetchSchema(dcfVersion: string, schemaOverride?: string): Promise<any> {
+  // If a schema override is provided, use it instead of fetching from the default URL
+  if (schemaOverride) {
+    return await loadSchemaOverride(schemaOverride, dcfVersion);
+  }
+
   // Parse the version to check major version compatibility
   const versionParts = dcfVersion.split('.').map(Number);
   const [major] = versionParts;
@@ -61,15 +68,59 @@ export async function fetchSchema(dcfVersion: string): Promise<any> {
 }
 
 /**
+ * Loads a schema from an override source (local directory or URL)
+ */
+async function loadSchemaOverride(schemaOverride: string, dcfVersion: string): Promise<any> {
+  // Check if schemaOverride is a local directory or file
+  if (schemaOverride.startsWith('http://') || schemaOverride.startsWith('https://')) {
+    // It's a URL, fetch the schema
+    const fetchModule = await import('node-fetch');
+    const fetch = fetchModule.default || fetchModule;
+
+    // Construct the schema URL based on the version and override base URL
+    let schemaUrl;
+    if (schemaOverride.endsWith('/')) {
+      schemaUrl = `${schemaOverride}dcf.schema.json`;
+    } else {
+      schemaUrl = `${schemaOverride}/dcf.schema.json`;
+    }
+
+    const response = await fetch(schemaUrl);
+    if (!response.ok) {
+      throw new Error(`Failed to fetch schema from ${schemaUrl}: ${response.status} ${response.statusText}`);
+    }
+    return await response.json();
+  } else {
+    // It's a local directory or file
+    try {
+      // Check if it's a directory
+      const schemaDirStat = await fs.stat(schemaOverride);
+      if (schemaDirStat.isDirectory()) {
+        // Load schema from the directory based on version
+        const schemaPath = path.join(schemaOverride, `dcf.schema.json`);
+        const schemaContent = await fs.readFile(schemaPath, 'utf-8');
+        return JSON.parse(schemaContent);
+      } else {
+        // It's a file, load it directly
+        const schemaContent = await fs.readFile(schemaOverride, 'utf-8');
+        return JSON.parse(schemaContent);
+      }
+    } catch (error) {
+      throw new Error(`Failed to load schema from ${schemaOverride}: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+}
+
+/**
  * Validates a DCF document against the appropriate JSON schema
  */
-export async function validateSchema(dcfDocument: any): Promise<ValidationResult> {
+export async function validateSchema(dcfDocument: any, schemaOverride?: string): Promise<ValidationResult> {
   const result: ValidationResult = {
     ok: true,
     errors: [],
     warnings: []
   };
-  
+
   // Check if document has required fields
   if (!dcfDocument.dcf_version) {
     result.ok = false;
@@ -82,20 +133,20 @@ export async function validateSchema(dcfDocument: any): Promise<ValidationResult
   }
 
   // profile is optional, so we don't need to check for it
-  
+
   // Store document metadata
   result.dcf_version = dcfDocument.dcf_version;
   // Use 'standard' as default if profile is not provided (per schema)
   result.profile = dcfDocument.profile || 'standard';
-  
+
   try {
-    // Fetch the appropriate schema based on the dcf_version
-    const schema = await fetchSchema(dcfDocument.dcf_version);
-    
+    // Fetch the appropriate schema based on the dcf_version and schema override
+    const schema = await fetchSchema(dcfDocument.dcf_version, schemaOverride);
+
     // Parse the version to check compatibility
     const versionParts = dcfDocument.dcf_version.split('.').map(Number);
     const [major, minor] = versionParts;
-    
+
     if (!SUPPORTED_MAJOR_VERSIONS.includes(major)) {
       result.ok = false;
       result.errors.push({
@@ -105,7 +156,7 @@ export async function validateSchema(dcfDocument: any): Promise<ValidationResult
       });
       return result;
     }
-    
+
     // Check if it's a newer minor version (within same major)
     // For now, we'll just issue a warning
     // In a real implementation, we'd need to determine our supported minor version
@@ -116,17 +167,17 @@ export async function validateSchema(dcfDocument: any): Promise<ValidationResult
         path: 'dcf_version'
       });
     }
-    
+
     // Create Ajv instance with formats
     const ajv = new Ajv({ allErrors: true });
     addFormats(ajv);
-    
+
     // Compile the schema
     const validate = ajv.compile(schema);
-    
+
     // Validate the document
     const valid = validate(dcfDocument);
-    
+
     if (!valid && validate.errors) {
       result.ok = false;
       for (const error of validate.errors) {
@@ -145,6 +196,6 @@ export async function validateSchema(dcfDocument: any): Promise<ValidationResult
       path: ''
     });
   }
-  
+
   return result;
 }
