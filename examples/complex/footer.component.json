@@ -1,0 +1,12 @@
+{
+  "dcf_version": "1.0.0",
+  "kind": "component",
+  "profile": "standard",
+  "name": "Footer",
+  "layout": {
+    "backgroundColor": "{color.dark}",
+    "color": "white",
+    "padding": "{space.md}",
+    "textAlign": "center"
+  }
+}

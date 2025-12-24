@@ -47,6 +47,11 @@ export async function validateDCF(
       validationResult.ok = false;
     }
 
+    // Preserve schema URL from schema validation
+    if (schemaResult.schema_url) {
+      validationResult.schema_url = schemaResult.schema_url;
+    }
+
     // Perform reference validation if schema validation passed
     // (or if we want to continue despite schema errors)
     if (schemaResult.ok || validationResult.errors.length === 0) {

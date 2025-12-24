@@ -14,6 +14,7 @@ export interface ValidationResult {
   ok: boolean;
   dcf_version?: string;
   profile?: string;
+  schema_url?: string;  // Added to track which schema was used
   errors: ValidationError[];
   warnings: ValidationError[];
 }
@@ -22,12 +23,13 @@ export interface ValidationResult {
 const SUPPORTED_MAJOR_VERSIONS = [1]; // Currently only supporting v1.x.x
 
 /**
- * Fetches the JSON schema for the specified DCF version
+ * Fetches the JSON schema for the specified DCF version and kind
  */
-export async function fetchSchema(dcfVersion: string, schemaOverride?: string): Promise<any> {
+export async function fetchSchema(dcfVersion: string, kind?: string, schemaOverride?: string): Promise<{ schema: any, schemaUrl: string }> {
   // If a schema override is provided, use it instead of fetching from the default URL
   if (schemaOverride) {
-    return await loadSchemaOverride(schemaOverride, dcfVersion);
+    const schema = await loadSchemaOverride(schemaOverride, dcfVersion);
+    return { schema, schemaUrl: schemaOverride };
   }
 
   // Parse the version to check major version compatibility
@@ -38,8 +40,14 @@ export async function fetchSchema(dcfVersion: string, schemaOverride?: string): 
     throw new Error(`Unsupported major version: ${major}. Only major versions ${SUPPORTED_MAJOR_VERSIONS.join(', ')} are supported.`);
   }
 
-  // Construct the schema URL based on the version
-  const schemaUrl = `https://eobermuhlner.github.io/dcf-spec/schema/v${dcfVersion}/dcf.schema.json`;
+  // Construct the schema URL based on the version and kind
+  // If no kind is specified, fall back to the generic dcf schema
+  let schemaUrl: string;
+  if (kind) {
+    schemaUrl = `https://eobermuhlner.github.io/dcf-spec/schema/v${dcfVersion}/${kind}.schema.json`;
+  } else {
+    schemaUrl = `https://eobermuhlner.github.io/dcf-spec/schema/v${dcfVersion}/dcf.schema.json`;
+  }
 
   try {
     // Dynamically import node-fetch to handle CJS/ESM compatibility
@@ -48,15 +56,28 @@ export async function fetchSchema(dcfVersion: string, schemaOverride?: string): 
 
     const response = await fetch(schemaUrl);
     if (!response.ok) {
-      throw new Error(`Failed to fetch schema from ${schemaUrl}: ${response.status} ${response.statusText}`);
+      // If the specific kind schema fails, try the generic schema as fallback
+      if (kind) {
+        console.warn(`Could not fetch ${kind} schema from ${schemaUrl}, falling back to generic schema`);
+        const fallbackSchemaUrl = `https://eobermuhlner.github.io/dcf-spec/schema/v${dcfVersion}/dcf.schema.json`;
+        const fallbackResponse = await fetch(fallbackSchemaUrl);
+        if (!fallbackResponse.ok) {
+          throw new Error(`Failed to fetch both ${kind} schema from ${schemaUrl} and fallback schema from ${fallbackSchemaUrl}: ${response.status} ${response.statusText} and ${fallbackResponse.status} ${fallbackResponse.statusText}`);
+        }
+        const schema = await fallbackResponse.json();
+        return { schema, schemaUrl: fallbackSchemaUrl };
+      } else {
+        throw new Error(`Failed to fetch schema from ${schemaUrl}: ${response.status} ${response.statusText}`);
+      }
     }
-    return await response.json();
+    const schema = await response.json();
+    return { schema, schemaUrl };
   } catch (error) {
     // Handle the case where network fetch fails
-    console.warn(`Could not fetch schema for version ${dcfVersion}:`, error);
+    console.warn(`Could not fetch schema for version ${dcfVersion} and kind ${kind}:`, error);
 
     // Return a basic schema as fallback to avoid complete failure
-    return {
+    const fallbackSchema = {
       type: "object",
       properties: {
         dcf_version: { type: "string" },
@@ -64,6 +85,7 @@ export async function fetchSchema(dcfVersion: string, schemaOverride?: string): 
       },
       required: ["dcf_version"]
     };
+    return { schema: fallbackSchema, schemaUrl: "fallback" };
   }
 }
 
@@ -140,8 +162,14 @@ export async function validateSchema(dcfDocument: any, schemaOverride?: string):
   result.profile = dcfDocument.profile || 'standard';
 
   try {
-    // Fetch the appropriate schema based on the dcf_version and schema override
-    const schema = await fetchSchema(dcfDocument.dcf_version, schemaOverride);
+    // Extract the kind from the document if available
+    const kind = dcfDocument.kind;
+
+    // Fetch the appropriate schema based on the dcf_version, kind, and schema override
+    const { schema, schemaUrl } = await fetchSchema(dcfDocument.dcf_version, kind, schemaOverride);
+
+    // Store the schema URL in the result
+    result.schema_url = schemaUrl;
 
     // Parse the version to check compatibility
     const versionParts = dcfDocument.dcf_version.split('.').map(Number);

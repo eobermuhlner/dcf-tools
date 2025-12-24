@@ -60,7 +60,8 @@ export async function validateMultipleFiles(
       // Perform schema-only validation (skip cross-reference validation)
       // We'll validate cross-references after collecting all documents
       const result = await validateDCF(document, {
-        strictWarnings: false // We'll handle strict warnings at the aggregate level
+        strictWarnings: false, // We'll handle strict warnings at the aggregate level
+        schemaOverride: context.schemaOverride // Use schema override from context
       });
 
       // Filter out cross-reference errors during individual validation

@@ -1,0 +1,21 @@
+{
+  "dcf_version": "1.0.0",
+  "kind": "component",
+  "profile": "standard",
+  "name": "Card",
+  "props": {
+    "elevation": {
+      "type": "string"
+    }
+  },
+  "variants": {
+    "elevation": ["low", "medium", "high"]
+  },
+  "layout": {
+    "borderRadius": "8px",
+    "border": "1px solid #e0e0e0",
+    "backgroundColor": "white",
+    "padding": "{space.lg}",
+    "boxShadow": "0 2px 4px rgba(0,0,0,0.1)"
+  }
+}

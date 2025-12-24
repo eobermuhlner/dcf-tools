@@ -1,0 +1,12 @@
+{
+  "dcf_version": "1.0.0",
+  "kind": "component",
+  "profile": "standard",
+  "name": "Card",
+  "layout": {
+    "border": "1px solid {color.secondary}",
+    "borderRadius": "4px",
+    "padding": "{space.lg}",
+    "backgroundColor": "white"
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "dcf_version": "1.0.0",
+  "kind": "component",
+  "profile": "standard",
+  "name": "Header",
+  "layout": {
+    "backgroundColor": "{color.primary}",
+    "color": "white",
+    "padding": "{space.md}",
+    "display": "flex",
+    "alignItems": "center"
+  }
+}

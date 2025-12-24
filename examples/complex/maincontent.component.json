@@ -1,0 +1,10 @@
+{
+  "dcf_version": "1.0.0",
+  "kind": "component",
+  "profile": "standard",
+  "name": "MainContent",
+  "layout": {
+    "padding": "{space.lg}",
+    "flex": 1
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "dcf_version": "1.0.0",
+  "kind": "screen",
+  "profile": "standard",
+  "name": "AboutScreen",
+  "intent": "view",
+  "layout": "MainLayout",
+  "content": [
+    {
+      "component": "Header",
+      "props": {
+        "title": "About"
+      }
+    },
+    {
+      "component": "Card",
+      "props": {
+        "title": "About Us",
+        "content": "Learn more about our company"
+      }
+    }
+  ]
+}

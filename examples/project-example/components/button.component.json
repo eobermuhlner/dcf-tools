@@ -1,0 +1,40 @@
+{
+  "dcf_version": "1.0.0",
+  "kind": "component",
+  "profile": "standard",
+  "name": "Button",
+  "description": "A standard button component",
+  "props": {
+    "variant": {
+      "type": "string"
+    },
+    "size": {
+      "type": "string"
+    },
+    "disabled": {
+      "type": "boolean",
+      "default": false
+    }
+  },
+  "variants": {
+    "variant": ["primary", "secondary", "success", "danger", "warning", "info", "light", "dark"],
+    "size": ["sm", "md", "lg"]
+  },
+  "layout": {
+    "padding": "{space.md}",
+    "borderRadius": "{radius.md}",
+    "border": "1px solid transparent",
+    "backgroundColor": "{color.primary}",
+    "color": "white",
+    "fontSize": "{font.size.base}",
+    "fontWeight": "{font.weight.medium}",
+    "cursor": "pointer",
+    "transition": "all 0.2s ease"
+  },
+  "states": {
+    "disabled": {
+      "opacity": 0.6,
+      "cursor": "not-allowed"
+    }
+  }
+}

@@ -38,16 +38,10 @@ export function formatTextOutput(
 ): string {
   let output = '';
 
-  // Add header information if not in quiet mode
-  if (!quiet) {
-    output += `DCF Validation Results\n`;
-    output += `Files validated: ${multiFileResult.results.length}\n`;
-    output += `Status: ${crossFileResult ? (crossFileResult.ok && multiFileResult.ok ? 'VALID' : 'INVALID') : (multiFileResult.ok ? 'VALID' : 'INVALID')}\n\n`;
-  }
-
   // Group errors and warnings by file
   const errorsByFile: { [file: string]: any[] } = {};
   const warningsByFile: { [file: string]: any[] } = {};
+  const schemasByFile: { [file: string]: string } = {};
 
   for (const result of multiFileResult.results) {
     for (const error of result.result.errors) {
@@ -55,11 +49,32 @@ export function formatTextOutput(
       if (!errorsByFile[file]) errorsByFile[file] = [];
       errorsByFile[file].push(error);
     }
-    
+
     for (const warning of result.result.warnings) {
       const file = result.file;
       if (!warningsByFile[file]) warningsByFile[file] = [];
       warningsByFile[file].push(warning);
+    }
+
+    // Store schema URL for this file if available
+    if (result.result.schema_url) {
+      schemasByFile[result.file] = result.result.schema_url;
+    }
+  }
+
+  // Add header information if not in quiet mode
+  if (!quiet) {
+    output += `DCF Validation Results\n`;
+    output += `Files validated: ${multiFileResult.results.length}\n`;
+    output += `Status: ${crossFileResult ? (crossFileResult.ok && multiFileResult.ok ? 'VALID' : 'INVALID') : (multiFileResult.ok ? 'VALID' : 'INVALID')}\n\n`;
+
+    // Add schema information for each file
+    if (Object.keys(schemasByFile).length > 0) {
+      output += `Schema information:\n`;
+      for (const file in schemasByFile) {
+        output += `  ${file}: ${schemasByFile[file]}\n`;
+      }
+      output += `\n`;
     }
   }
 

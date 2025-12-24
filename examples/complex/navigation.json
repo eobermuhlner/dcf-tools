@@ -1,0 +1,16 @@
+{
+  "dcf_version": "1.0.0",
+  "kind": "navigation",
+  "profile": "standard",
+  "name": "app-navigation",
+  "routes": {
+    "/": {
+      "path": "/",
+      "screen": "HomeScreen"
+    },
+    "/about": {
+      "path": "/about",
+      "screen": "AboutScreen"
+    }
+  }
+}

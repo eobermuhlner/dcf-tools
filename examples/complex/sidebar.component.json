@@ -1,0 +1,11 @@
+{
+  "dcf_version": "1.0.0",
+  "kind": "component",
+  "profile": "standard",
+  "name": "Sidebar",
+  "layout": {
+    "backgroundColor": "{color.light}",
+    "padding": "{space.md}",
+    "borderRight": "1px solid {color.secondary}"
+  }
+}

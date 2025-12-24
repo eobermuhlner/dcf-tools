@@ -1,0 +1,142 @@
+{
+  "dcf_version": "1.0.0",
+  "kind": "tokens",
+  "profile": "standard",
+  "tokens": {
+    "color": {
+      "primary": {
+        "value": "#007acc"
+      },
+      "secondary": {
+        "value": "#6c757d"
+      },
+      "success": {
+        "value": "#28a745"
+      },
+      "danger": {
+        "value": "#dc3545"
+      },
+      "warning": {
+        "value": "#ffc107"
+      },
+      "info": {
+        "value": "#17a2b8"
+      },
+      "light": {
+        "value": "#f8f9fa"
+      },
+      "dark": {
+        "value": "#343a40"
+      }
+    },
+    "space": {
+      "xs": {
+        "value": "0.25rem"
+      },
+      "sm": {
+        "value": "0.5rem"
+      },
+      "md": {
+        "value": "1rem"
+      },
+      "lg": {
+        "value": "1.5rem"
+      },
+      "xl": {
+        "value": "3rem"
+      },
+      "xxl": {
+        "value": "4rem"
+      }
+    },
+    "font": {
+      "family": {
+        "primary": {
+          "value": "Inter, system-ui, sans-serif"
+        },
+        "heading": {
+          "value": "Inter, system-ui, sans-serif"
+        },
+        "code": {
+          "value": "SFMono-Regular, Consolas, 'Liberation Mono', Menlo, monospace"
+        }
+      },
+      "size": {
+        "xs": {
+          "value": "0.75rem"
+        },
+        "sm": {
+          "value": "0.875rem"
+        },
+        "base": {
+          "value": "1rem"
+        },
+        "lg": {
+          "value": "1.125rem"
+        },
+        "xl": {
+          "value": "1.25rem"
+        },
+        "h1": {
+          "value": "2.5rem"
+        },
+        "h2": {
+          "value": "2rem"
+        },
+        "h3": {
+          "value": "1.5rem"
+        },
+        "h4": {
+          "value": "1.25rem"
+        },
+        "h5": {
+          "value": "1.125rem"
+        },
+        "h6": {
+          "value": "1rem"
+        }
+      },
+      "weight": {
+        "normal": {
+          "value": "400"
+        },
+        "medium": {
+          "value": "500"
+        },
+        "semibold": {
+          "value": "600"
+        },
+        "bold": {
+          "value": "700"
+        }
+      }
+    },
+    "radius": {
+      "sm": {
+        "value": "2px"
+      },
+      "md": {
+        "value": "4px"
+      },
+      "lg": {
+        "value": "8px"
+      },
+      "xl": {
+        "value": "12px"
+      }
+    },
+    "border": {
+      "width": {
+        "sm": {
+          "value": "1px"
+        },
+        "md": {
+          "value": "2px"
+        },
+        "lg": {
+          "value": "4px"
+        }
+      }
+    }
+  }
+}

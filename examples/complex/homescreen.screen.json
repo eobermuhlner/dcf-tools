@@ -1,0 +1,23 @@
+{
+  "dcf_version": "1.0.0",
+  "kind": "screen",
+  "profile": "standard",
+  "name": "HomeScreen",
+  "intent": "view",
+  "layout": "MainLayout",
+  "content": [
+    {
+      "component": "Header",
+      "props": {
+        "title": "Home"
+      }
+    },
+    {
+      "component": "Card",
+      "props": {
+        "title": "Welcome",
+        "content": "Welcome to our application"
+      }
+    }
+  ]
+}

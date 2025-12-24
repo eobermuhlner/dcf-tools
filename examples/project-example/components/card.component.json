@@ -1,0 +1,23 @@
+{
+  "dcf_version": "1.0.0",
+  "kind": "component",
+  "profile": "standard",
+  "name": "Card",
+  "description": "A card component for grouping related content",
+  "props": {
+    "elevation": {
+      "type": "string",
+      "default": "medium"
+    }
+  },
+  "variants": {
+    "elevation": ["low", "medium", "high"]
+  },
+  "layout": {
+    "borderRadius": "{radius.lg}",
+    "border": "1px solid #e0e0e0",
+    "backgroundColor": "white",
+    "padding": "{space.lg}",
+    "boxShadow": "0 2px 4px rgba(0,0,0,0.1)"
+  }
+}

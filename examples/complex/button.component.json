@@ -1,0 +1,20 @@
+{
+  "dcf_version": "1.0.0",
+  "kind": "component",
+  "profile": "standard",
+  "name": "Button",
+  "props": {
+    "variant": {
+      "type": "string"
+    }
+  },
+  "variants": {
+    "variant": ["primary", "secondary", "success", "danger"]
+  },
+  "layout": {
+    "padding": "{space.md}",
+    "borderRadius": "4px",
+    "backgroundColor": "{color.primary}",
+    "color": "white"
+  }
+}
