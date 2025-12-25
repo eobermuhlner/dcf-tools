@@ -587,8 +587,14 @@ export async function startPreviewServer(paths: string[], options: PreviewOption
     configFile: false, // Don't load vite.config.ts to avoid react-refresh plugin
     server: {
       middlewareMode: true,
-      hmr: false, // Disable HMR to prevent constant reloads
-      watch: null, // Disable file watching completely
+      hmr: {
+        // Use a random port for HMR WebSocket to avoid conflicts
+        port: port + 1000,
+      },
+      watch: {
+        // Only watch the preview-related files, not the entire project
+        ignored: ['**/node_modules/**', '**/dist/**', '**/.git/**'],
+      },
     },
     appType: 'custom',
     root: projectRoot,
@@ -596,10 +602,6 @@ export async function startPreviewServer(paths: string[], options: PreviewOption
       alias: {
         '@': path.resolve(projectRoot, 'src'),
       },
-    },
-    // Disable file watching and optimization discovery to prevent reloads
-    optimizeDeps: {
-      noDiscovery: true,
     },
     // Use esbuild for JSX transformation instead of react-refresh plugin
     esbuild: {
@@ -611,12 +613,9 @@ export async function startPreviewServer(paths: string[], options: PreviewOption
   app.use(vite.middlewares);
 
   // Serve the preview app with React integration
-  // Note: We manually inject the script without using transformIndexHtml to avoid
-  // the Vite client script which causes reconnection loops when HMR is disabled
   app.get("/", async (req, res, next) => {
     try {
-      // Serve HTML directly without Vite's transformIndexHtml to avoid HMR client injection
-      const template = `
+      const template = await vite.transformIndexHtml(req.url, `
         <!DOCTYPE html>
         <html lang="en">
         <head>
@@ -629,7 +628,7 @@ export async function startPreviewServer(paths: string[], options: PreviewOption
           <script type="module" src="/src/lib/preview/index.tsx"></script>
         </body>
         </html>
-      `;
+      `);
       res.status(200).set({ 'Content-Type': 'text/html' }).end(template);
     } catch (error) {
       console.error('Error in Vite middleware mode:', error);
