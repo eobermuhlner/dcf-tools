@@ -587,14 +587,8 @@ export async function startPreviewServer(paths: string[], options: PreviewOption
     configFile: false, // Don't load vite.config.ts to avoid react-refresh plugin
     server: {
       middlewareMode: true,
-      hmr: {
-        // Use a random port for HMR WebSocket to avoid conflicts
-        port: port + 1000,
-      },
-      watch: {
-        // Only watch the preview-related files, not the entire project
-        ignored: ['**/node_modules/**', '**/dist/**', '**/.git/**'],
-      },
+      hmr: false,
+      ws: false, // Explicitly disable WebSocket server
     },
     appType: 'custom',
     root: projectRoot,
@@ -615,7 +609,7 @@ export async function startPreviewServer(paths: string[], options: PreviewOption
   // Serve the preview app with React integration
   app.get("/", async (req, res, next) => {
     try {
-      const template = await vite.transformIndexHtml(req.url, `
+      let template = await vite.transformIndexHtml(req.url, `
         <!DOCTYPE html>
         <html lang="en">
         <head>
@@ -629,6 +623,8 @@ export async function startPreviewServer(paths: string[], options: PreviewOption
         </body>
         </html>
       `);
+      // Remove Vite client script to prevent HMR reconnection loops
+      template = template.replace(/<script type="module" src="\/@vite\/client"><\/script>\s*/g, '');
       res.status(200).set({ 'Content-Type': 'text/html' }).end(template);
     } catch (error) {
       console.error('Error in Vite middleware mode:', error);
