@@ -95,12 +95,22 @@ export function renderNodeToCss(node: RenderNode): React.CSSProperties {
     if (style.minHeight !== undefined) baseStyles.minHeight = `${style.minHeight}px`;
     if (style.maxHeight !== undefined) baseStyles.maxHeight = `${style.maxHeight}px`;
 
-    // Apply spacing
-    Object.assign(baseStyles, spacingToCss(style.padding));
-    
+    // Apply spacing - handle both structured Spacing objects and raw CSS strings
+    if (style.padding !== undefined) {
+      if (typeof style.padding === 'string') {
+        // If it's already a CSS string (e.g., "1rem 1.5rem"), use it directly
+        baseStyles.padding = style.padding;
+      } else {
+        Object.assign(baseStyles, spacingToCss(style.padding));
+      }
+    }
+
     // For margin, we need a different approach since it's not padding
     if (style.margin !== undefined) {
-      if (typeof style.margin === 'number') {
+      if (typeof style.margin === 'string') {
+        // If it's already a CSS string, use it directly
+        baseStyles.margin = style.margin;
+      } else if (typeof style.margin === 'number') {
         baseStyles.margin = `${style.margin}px`;
       } else if (typeof style.margin === 'object' && style.margin !== null) {
         if (style.margin.top !== undefined) baseStyles.marginTop = `${style.margin.top}px`;
@@ -111,11 +121,26 @@ export function renderNodeToCss(node: RenderNode): React.CSSProperties {
     }
 
     // Background and border properties
+    // Handle both 'background' and 'backgroundColor' property names
     if (style.background) baseStyles.backgroundColor = style.background;
+    if ((style as any).backgroundColor) baseStyles.backgroundColor = (style as any).backgroundColor;
     if (style.borderColor) baseStyles.borderColor = style.borderColor;
-    if (style.borderWidth !== undefined) baseStyles.borderWidth = `${style.borderWidth}px`;
-    if (style.borderWidth !== undefined) baseStyles.borderStyle = 'solid';
-    if (style.borderRadius !== undefined) baseStyles.borderRadius = `${style.borderRadius}px`;
+    if (style.borderWidth !== undefined) {
+      baseStyles.borderWidth = typeof style.borderWidth === 'number' ? `${style.borderWidth}px` : style.borderWidth;
+      baseStyles.borderStyle = 'solid';
+    }
+    if (style.borderRadius !== undefined) {
+      // Handle both numeric values and CSS strings like "4px"
+      baseStyles.borderRadius = typeof style.borderRadius === 'number' ? `${style.borderRadius}px` : style.borderRadius;
+    }
+    // Handle border shorthand (e.g., "none", "1px solid black")
+    if ((style as any).border !== undefined) {
+      baseStyles.border = (style as any).border;
+    }
+    // Handle cursor
+    if ((style as any).cursor !== undefined) {
+      baseStyles.cursor = (style as any).cursor;
+    }
 
     // Opacity
     if (style.opacity !== undefined) baseStyles.opacity = style.opacity;
@@ -130,9 +155,12 @@ export function renderNodeToCss(node: RenderNode): React.CSSProperties {
   // Apply text-specific styles if it's a text node
   if (node.kind === 'text' && node.style) {
     const textStyle = node.style;
-    
+
     if (textStyle.color) baseStyles.color = textStyle.color;
-    if (textStyle.fontSize !== undefined) baseStyles.fontSize = `${textStyle.fontSize}px`;
+    if (textStyle.fontSize !== undefined) {
+      // Handle both numeric values and CSS strings like "16px" or "1rem"
+      baseStyles.fontSize = typeof textStyle.fontSize === 'number' ? `${textStyle.fontSize}px` : textStyle.fontSize;
+    }
     if (textStyle.fontWeight) baseStyles.fontWeight = textStyle.fontWeight;
     if (textStyle.fontFamily) baseStyles.fontFamily = textStyle.fontFamily;
     if (textStyle.lineHeight !== undefined) baseStyles.lineHeight = textStyle.lineHeight;

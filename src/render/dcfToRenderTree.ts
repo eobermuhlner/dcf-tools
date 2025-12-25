@@ -33,10 +33,10 @@ function resolveTokenReference(value: string, tokens: any): string {
   if (typeof value !== 'string' || !value.startsWith('{') || !value.endsWith('}')) {
     return value;
   }
-  
+
   const tokenPath = value.slice(1, -1); // Remove { and }
   const pathParts = tokenPath.split('.');
-  
+
   let current: any = tokens;
   for (const part of pathParts) {
     if (current && typeof current === 'object') {
@@ -45,7 +45,13 @@ function resolveTokenReference(value: string, tokens: any): string {
       return value; // Return original if token not found
     }
   }
-  
+
+  // If the resolved value is an object with a 'value' property, extract it
+  // This handles token structures like { value: "#007acc" }
+  if (current && typeof current === 'object' && 'value' in current) {
+    return current.value;
+  }
+
   return current !== undefined ? current : value;
 }
 
@@ -53,19 +59,43 @@ function resolveStyleTokens(style: any, tokens: any): any {
   if (!style || typeof style !== 'object') {
     return style;
   }
-  
+
   const resolvedStyle: any = {};
-  
+
   for (const [key, value] of Object.entries(style)) {
-    if (typeof value === 'string' && value.startsWith('{') && value.endsWith('}')) {
-      resolvedStyle[key] = resolveTokenReference(value, tokens);
+    if (typeof value === 'string') {
+      // Handle strings that contain token references (one or more)
+      // Pattern: {token.path} anywhere in the string
+      if (value.includes('{') && value.includes('}')) {
+        resolvedStyle[key] = value.replace(/\{([^}]+)\}/g, (match, tokenPath) => {
+          const pathParts = tokenPath.split('.');
+          let current: any = tokens;
+
+          for (const part of pathParts) {
+            if (current && typeof current === 'object') {
+              current = current[part];
+            } else {
+              return match; // Return original if token not found
+            }
+          }
+
+          // If the resolved value is an object with a 'value' property, extract it
+          if (current && typeof current === 'object' && 'value' in current) {
+            return current.value;
+          }
+
+          return current !== undefined ? current : match;
+        });
+      } else {
+        resolvedStyle[key] = value;
+      }
     } else if (typeof value === 'object' && value !== null) {
       resolvedStyle[key] = resolveStyleTokens(value, tokens);
     } else {
       resolvedStyle[key] = value;
     }
   }
-  
+
   return resolvedStyle;
 }
 
@@ -363,11 +393,50 @@ export function dcfToRenderTree(dcfDocument: any): RenderNode {
           };
 
           // Create the component node
-          const componentNode = createRenderNode(
+          // If the component has no content but has styles, we need to ensure it renders something
+          let componentNode = createRenderNode(
             componentObj,
             ['root', 'components', name],
             tokens
           );
+
+          // If the component has styles, render it as a styled visual element
+          // This handles components that define visual appearance but no content structure
+          const hasStyles = (component as any).styles;
+          const isEmptyFrame = componentNode.kind === 'frame' && componentNode.children.length === 0;
+          const isUnknown = componentNode.kind === 'unknown';
+
+          if (hasStyles && (isEmptyFrame || isUnknown)) {
+            // Resolve the component's styles with token values
+            const resolvedStyles = resolveStyleTokens((component as any).styles, tokens);
+
+            // Create a styled button-like element that visually represents the component
+            componentNode = {
+              kind: "frame",
+              id: componentNode.id,
+              layout: { type: "flex", direction: "column", align: "center", justify: "center" },
+              style: {
+                ...resolvedStyles,
+                // Ensure minimum dimensions so the component is visible
+                minWidth: 100,
+                minHeight: 40,
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center"
+              },
+              children: [{
+                kind: "text",
+                id: `text-${name}`,
+                text: name,
+                style: {
+                  color: resolvedStyles.color || "white",
+                  fontWeight: resolvedStyles.fontWeight || "bold",
+                  fontSize: resolvedStyles.fontSize
+                }
+              }],
+              label: `Styled Component: ${name}`
+            };
+          }
 
           // Wrap the component in a labeled frame
           const wrapperNode: RenderNode = {
