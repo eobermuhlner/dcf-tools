@@ -526,9 +526,6 @@ export async function startPreviewServer(paths: string[], options: PreviewOption
   // Store the current DCF data
   let currentData: DCFPreviewData | null = null;
 
-  // Store connected clients for SSE
-  const clients: any[] = [];
-
   // Function to load and process DCF files with basic validation
   async function loadDCFDataForServer(): Promise<DCFPreviewData> {
     return await loadDCFData(discoveredFiles, options);
@@ -537,58 +534,41 @@ export async function startPreviewServer(paths: string[], options: PreviewOption
   // Initial load
   currentData = await loadDCFDataForServer();
 
-  // Set up file watcher for all discovered files
-  const watcher = chokidar.watch(discoveredFiles, {
-    persistent: true,
-    ignoreInitial: true
-  });
-
-  watcher.on('change', async (filePath) => {
-    if (!options.quiet) {
-      console.log(`File changed: ${filePath}`);
-    }
-    currentData = await loadDCFDataForServer();
-
-    // Notify all connected clients
-    clients.forEach(client => {
-      client.res.write(`data: ${JSON.stringify(currentData)}\n\n`);
+  // In non-static mode, still watch files to update the data when they change
+  if (!staticDir && !snapshotDir) {
+    const watcher = chokidar.watch(discoveredFiles, {
+      persistent: true,
+      ignoreInitial: true,
+      ignorePermissionErrors: true,
+      awaitWriteFinish: true // Wait for files to be completely written before triggering
     });
-  });
+
+    // Debounce function to avoid rapid updates
+    let reloadTimeout: NodeJS.Timeout | null = null;
+
+    watcher.on('change', async (filePath) => {
+      if (!options.quiet) {
+        console.log(`File changed: ${filePath}`);
+      }
+
+      // Debounce the reload to avoid rapid updates
+      if (reloadTimeout) {
+        clearTimeout(reloadTimeout);
+      }
+
+      reloadTimeout = setTimeout(async () => {
+        try {
+          currentData = await loadDCFDataForServer();
+        } catch (error) {
+          console.error('Error reloading DCF data:', error);
+        }
+      }, 1000); // Wait 1 second before reloading to debounce rapid changes
+    });
+  }
 
   // API endpoint to get current DCF data
   app.get('/api/dcf', (req, res) => {
     res.json(currentData);
-  });
-
-  // SSE endpoint for real-time updates
-  app.get('/api/dcf-updates', (req, res) => {
-    // Set headers for SSE
-    res.setHeader('Content-Type', 'text/event-stream');
-    res.setHeader('Cache-Control', 'no-cache');
-    res.setHeader('Connection', 'keep-alive');
-    res.setHeader('Access-Control-Allow-Origin', '*');
-
-    // Add client to the list
-    const clientId = Date.now();
-    const newClient = {
-      id: clientId,
-      res
-    };
-    clients.push(newClient);
-
-    // Send initial data
-    res.write(`data: ${JSON.stringify(currentData)}\n\n`);
-
-    // Remove client when connection is closed
-    req.on('close', () => {
-      if (!options.quiet) {
-        console.log(`${clientId} Connection closed`);
-      }
-      const index = clients.findIndex(client => client.id === clientId);
-      if (index > -1) {
-        clients.splice(index, 1);
-      }
-    });
   });
 
   // Create Vite server in middleware mode
@@ -635,8 +615,82 @@ export async function startPreviewServer(paths: string[], options: PreviewOption
       `);
       res.status(200).set({ 'Content-Type': 'text/html' }).end(template);
     } catch (error) {
-      // Fall back to the Vite middleware if transformation fails
-      vite.middlewares(req, res, next);
+      console.error('Error in Vite middleware mode:', error);
+      // Fall back to serving a simple HTML page that can load the preview data
+      res.status(200).set({ 'Content-Type': 'text/html' }).end(`
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+          <meta charset="UTF-8" />
+          <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+          <title>DCF Visual Preview</title>
+          <style>
+            body { font-family: Arial, sans-serif; margin: 20px; }
+            .container { max-width: 1200px; margin: 0 auto; }
+            .header { text-align: center; margin-bottom: 30px; }
+            .content { margin: 20px 0; }
+            pre { background: #f5f5f5; padding: 10px; overflow: auto; }
+            .error { color: red; }
+            .success { color: green; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="header">
+              <h1>DCF Preview (Fallback Mode)</h1>
+              <p>This preview is running in fallback mode. The full React UI requires development mode.</p>
+            </div>
+            <div class="content">
+              <h2>DCF Data</h2>
+              <div id="data-container">
+                <p>Loading data...</p>
+              </div>
+            </div>
+          </div>
+          <script>
+            // Load DCF data from the API
+            async function loadDCFData() {
+              try {
+                const response = await fetch('/api/dcf');
+                if (!response.ok) {
+                  throw new Error(\`HTTP error! status: \${response.status}\`);
+                }
+                const data = await response.json();
+
+                const container = document.getElementById('data-container');
+                if (data.error) {
+                  container.innerHTML = '<div class="error"><h3>Validation Error</h3><p>' + data.error + '</p></div>';
+                } else {
+                  container.innerHTML = '<div class="success"><h3>Loaded Successfully</h3><p>DCF document loaded. Check the JSON tab for details.</p><pre>' + JSON.stringify(data.document, null, 2) + '</pre></div>';
+                }
+              } catch (error) {
+                console.error('Error loading DCF data:', error);
+                document.getElementById('data-container').innerHTML = '<div class="error"><h3>Error Loading Data</h3><p>' + error.message + '</p></div>';
+              }
+            }
+
+            // Load data when page loads
+            document.addEventListener('DOMContentLoaded', loadDCFData);
+
+            // Also listen for updates via SSE
+            const eventSource = new EventSource('/api/dcf-updates');
+            eventSource.onmessage = (event) => {
+              try {
+                const data = JSON.parse(event.data);
+                const container = document.getElementById('data-container');
+                if (data.error) {
+                  container.innerHTML = '<div class="error"><h3>Validation Error</h3><p>' + data.error + '</p></div>';
+                } else {
+                  container.innerHTML = '<div class="success"><h3>Data Updated</h3><p>DCF document updated. Check the JSON tab for details.</p><pre>' + JSON.stringify(data.document, null, 2) + '</pre></div>';
+                }
+              } catch (err) {
+                console.error('Error parsing SSE data:', err);
+              }
+            };
+          </script>
+        </body>
+        </html>
+      `);
     }
   });
 
@@ -655,7 +709,13 @@ export async function startPreviewServer(paths: string[], options: PreviewOption
     // Handle graceful shutdown
     process.on('SIGINT', () => {
       console.log('\nShutting down preview server...');
-      watcher.close();
+      if (reloadTimeout) {
+        clearTimeout(reloadTimeout);
+      }
+      // Only close watcher if it was created (in non-static mode)
+      if (typeof watcher !== 'undefined') {
+        watcher.close();
+      }
       server.close(() => {
         console.log('Server closed.');
         process.exit(0);

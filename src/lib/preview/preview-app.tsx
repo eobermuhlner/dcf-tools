@@ -16,6 +16,9 @@ const PreviewApp: React.FC = () => {
   const [showVisual, setShowVisual] = useState(true); // Toggle between visual and JSON view
 
   useEffect(() => {
+    let pollInterval: NodeJS.Timeout;
+    let isCancelled = false;
+
     const fetchData = async () => {
       try {
         setLoading(true);
@@ -24,34 +27,45 @@ const PreviewApp: React.FC = () => {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
         const data = await response.json();
-        setDcfData(data as DCFData);
-        setError(null);
+        if (!isCancelled) {
+          setDcfData(data as DCFData);
+          setError(null);
+        }
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'An unknown error occurred');
+        if (!isCancelled) {
+          setError(err instanceof Error ? err.message : 'An unknown error occurred');
+        }
       } finally {
-        setLoading(false);
+        if (!isCancelled) {
+          setLoading(false);
+        }
       }
     };
 
+    // Initial fetch
     fetchData();
 
-    // Set up SSE to get updates when the file changes
-    const eventSource = new EventSource('/api/dcf-updates');
-    eventSource.onmessage = (event) => {
+    // Set up polling to check for updates (instead of SSE)
+    pollInterval = setInterval(async () => {
       try {
-        const data = JSON.parse(event.data);
-        setDcfData(data as DCFData);
+        const response = await fetch('/api/dcf');
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data = await response.json();
+        if (!isCancelled) {
+          setDcfData(data as DCFData);
+        }
       } catch (err) {
-        console.error('Error parsing SSE data:', err);
+        console.error('Error fetching updated data:', err);
       }
-    };
-
-    eventSource.onerror = (err) => {
-      console.error('SSE error:', err);
-    };
+    }, 5000); // Poll every 5 seconds instead of constant SSE updates
 
     return () => {
-      eventSource.close();
+      isCancelled = true;
+      if (pollInterval) {
+        clearInterval(pollInterval);
+      }
     };
   }, []);
 

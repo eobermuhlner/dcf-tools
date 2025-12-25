@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { startPreviewServer } from './lib/preview/preview-server.js';
+import { startPreviewServer } from './dist/lib/preview/preview-server.js';
 
 // Get command line arguments
 const args = process.argv.slice(2);

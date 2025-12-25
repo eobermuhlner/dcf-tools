@@ -1,0 +1,35 @@
+{
+  "dcf_version": "1.0.0",
+  "kind": "component",
+  "profile": "standard",
+  "name": "Button",
+  "description": "A simple button component",
+  "props": {
+    "variant": {
+      "type": "string",
+      "default": "primary"
+    },
+    "size": {
+      "type": "string",
+      "default": "medium"
+    },
+    "content": {
+      "type": "string",
+      "default": "Click me"
+    }
+  },
+  "variants": {
+    "variant": ["primary", "secondary", "success", "danger"],
+    "size": ["small", "medium", "large"]
+  },
+  "styles": {
+    "padding": "{space.md} {space.lg}",
+    "backgroundColor": "{color.primary}",
+    "color": "white",
+    "border": "none",
+    "borderRadius": "4px",
+    "cursor": "pointer",
+    "fontSize": "{font.size.medium}",
+    "fontWeight": "bold"
+  }
+}

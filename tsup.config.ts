@@ -29,5 +29,18 @@ export default defineConfig([
       return { js: '.js' };
     },
     external: ['vite', 'express', 'chokidar', 'open'], // Exclude heavy dependencies from lib bundle
+  },
+  {
+    entry: ['src/lib/preview/preview-server.ts'],
+    outDir: 'dist/lib/preview',
+    format: ['cjs'],
+    splitting: false,
+    sourcemap: true,
+    clean: false, // Don't clean to preserve other files
+    dts: false,
+    outExtension() {
+      return { js: '.js' };
+    },
+    external: ['vite', 'express', 'chokidar', 'open'], // Exclude heavy dependencies
   }
 ]);

@@ -1,0 +1,201 @@
+{
+  "dcf_version": "1.0.0",
+  "profile": "standard",
+  "kind": "dcf", 
+  "name": "Complete Example",
+  "description": "A complete DCF example with tokens, components, and screens",
+  "tokens": {
+    "color": {
+      "primary": {
+        "value": "#007acc",
+        "description": "Primary brand color"
+      },
+      "secondary": {
+        "value": "#6c757d",
+        "description": "Secondary color"
+      },
+      "success": {
+        "value": "#28a745",
+        "description": "Success state color"
+      },
+      "danger": {
+        "value": "#dc3545",
+        "description": "Error state color"
+      },
+      "background": {
+        "value": "#ffffff",
+        "description": "Background color"
+      },
+      "text": {
+        "value": "#333333",
+        "description": "Primary text color"
+      }
+    },
+    "space": {
+      "xs": {
+        "value": "0.25rem"
+      },
+      "sm": {
+        "value": "0.5rem"
+      },
+      "md": {
+        "value": "1rem"
+      },
+      "lg": {
+        "value": "1.5rem"
+      },
+      "xl": {
+        "value": "3rem"
+      }
+    },
+    "font": {
+      "size": {
+        "small": {
+          "value": "0.875rem"
+        },
+        "medium": {
+          "value": "1rem"
+        },
+        "large": {
+          "value": "1.25rem"
+        },
+        "xlarge": {
+          "value": "1.5rem"
+        }
+      }
+    }
+  },
+  "components": {
+    "Button": {
+      "name": "Button",
+      "description": "A standard button component",
+      "props": {
+        "variant": {
+          "type": "string",
+          "default": "primary"
+        },
+        "size": {
+          "type": "string",
+          "default": "medium"
+        },
+        "disabled": {
+          "type": "boolean",
+          "default": false
+        }
+      },
+      "variants": {
+        "variant": ["primary", "secondary", "success", "danger"],
+        "size": ["small", "medium", "large"]
+      },
+      "styles": {
+        "display": "inline-block",
+        "padding": "{space.md} {space.lg}",
+        "backgroundColor": "{color.primary}",
+        "color": "white",
+        "border": "none",
+        "borderRadius": "4px",
+        "cursor": "pointer",
+        "fontSize": "{font.size.medium}",
+        "fontWeight": "bold",
+        "textDecoration": "none",
+        "textAlign": "center"
+      },
+      "states": {
+        "hover": {
+          "backgroundColor": "#0056b3"
+        },
+        "disabled": {
+          "opacity": "0.6",
+          "cursor": "not-allowed"
+        }
+      }
+    },
+    "Card": {
+      "name": "Card",
+      "description": "A container component for grouping related content",
+      "props": {
+        "elevation": {
+          "type": "number",
+          "default": 1
+        }
+      },
+      "styles": {
+        "backgroundColor": "{color.background}",
+        "borderRadius": "8px",
+        "padding": "{space.lg}",
+        "boxShadow": "0 2px 4px rgba(0,0,0,0.1)",
+        "border": "1px solid #eee"
+      }
+    },
+    "Header": {
+      "name": "Header",
+      "description": "Application header component",
+      "styles": {
+        "backgroundColor": "{color.primary}",
+        "color": "white",
+        "padding": "{space.md}",
+        "display": "flex",
+        "justifyContent": "space-between",
+        "alignItems": "center"
+      }
+    }
+  },
+  "screens": {
+    "HomeScreen": {
+      "name": "HomeScreen",
+      "title": "Home",
+      "layout": "MainLayout",
+      "content": [
+        {
+          "component": "Header",
+          "props": {
+            "title": "Welcome"
+          }
+        },
+        {
+          "component": "Card",
+          "props": {
+            "title": "Welcome to DCF"
+          },
+          "children": [
+            {
+              "component": "Text",
+              "props": {
+                "content": "This is a sample home screen using DCF components."
+              }
+            },
+            {
+              "component": "Button",
+              "props": {
+                "variant": "primary",
+                "content": "Get Started"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "layouts": {
+    "MainLayout": {
+      "name": "MainLayout",
+      "description": "Main application layout",
+      "regions": {
+        "header": {
+          "component": "Header"
+        },
+        "main": {
+          "component": "MainContent"
+        },
+        "footer": {
+          "component": "Footer"
+        }
+      },
+      "styles": {
+        "display": "flex",
+        "flexDirection": "column",
+        "minHeight": "100vh"
+      }
+    }
+  }
+}

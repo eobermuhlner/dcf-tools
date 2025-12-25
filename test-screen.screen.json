@@ -1,0 +1,23 @@
+{
+  "dcf_version": "1.0.0",
+  "kind": "screen",
+  "profile": "standard",
+  "name": "TestScreen",
+  "title": "Test Screen",
+  "content": [
+    {
+      "component": "Button",
+      "props": {
+        "content": "Primary Button",
+        "variant": "primary"
+      }
+    },
+    {
+      "component": "Button",
+      "props": {
+        "content": "Secondary Button",
+        "variant": "secondary"
+      }
+    }
+  ]
+}

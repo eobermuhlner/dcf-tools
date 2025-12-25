@@ -287,48 +287,252 @@ export function dcfToRenderTree(dcfDocument: any): RenderNode {
     };
   }
 
-  const tokens = dcfDocument.tokens || {};
-  
-  // Create a root frame that contains components and layouts
-  const rootChildren: RenderNode[] = [];
+  // Handle both the expected structure and the structure used by the preview server
+  // Preview server organizes by kind (component, layout, screen, etc.) as singular keys
+  // And may nest tokens under filename keys, so we need to consolidate them
+  let tokens = dcfDocument.tokens || dcfDocument.token || {};
 
-  // Process components
-  if (dcfDocument.components && typeof dcfDocument.components === 'object') {
-    for (const [name, component] of Object.entries(dcfDocument.components)) {
-      if (component && typeof component === 'object') {
-        const componentObj = { ...component, name, type: (component as any).type || name };
-        const componentNode = createRenderNode(
-          componentObj,
-          ['root', 'components', name],
-          tokens
-        );
-        rootChildren.push(componentNode);
+  // If tokens is an object with filename keys, consolidate the nested token objects
+  if (tokens && typeof tokens === 'object' && !tokens.color && !tokens.space && !tokens.font) {
+    // This looks like a nested structure with filename keys
+    const consolidatedTokens: any = {};
+    for (const [key, value] of Object.entries(tokens)) {
+      if (typeof value === 'object' && value.tokens) {
+        // This is a token file object, merge its tokens
+        for (const [tokenType, tokenValues] of Object.entries(value.tokens)) {
+          if (!consolidatedTokens[tokenType]) {
+            consolidatedTokens[tokenType] = {};
+          }
+          Object.assign(consolidatedTokens[tokenType], tokenValues);
+        }
+      }
+    }
+    tokens = consolidatedTokens;
+  }
+
+  // First, try to find screens to render
+  const screens = dcfDocument.screens || dcfDocument.screen;
+  if (screens && typeof screens === 'object') {
+    // Process screens - this is the highest level
+    const screenEntries = Object.entries(screens);
+    if (screenEntries.length > 0) {
+      const [firstScreenName, firstScreen] = screenEntries[0]; // Render the first screen
+      if (firstScreen && typeof firstScreen === 'object') {
+        // Create a render node for the screen
+        const screenObj = {
+          ...firstScreen,
+          name: firstScreenName,
+          type: 'screen',
+          // If screen has content, use it, otherwise create a default structure
+          content: firstScreen.content || []
+        };
+        return createRenderNode(screenObj, ['root', 'screens', firstScreenName], tokens);
       }
     }
   }
 
-  // Process layouts
-  if (dcfDocument.layouts && typeof dcfDocument.layouts === 'object') {
-    for (const [name, layout] of Object.entries(dcfDocument.layouts)) {
-      if (layout && typeof layout === 'object') {
-        const layoutObj = { ...layout, name, type: (layout as any).type || name };
-        const layoutNode = createRenderNode(
-          layoutObj,
-          ['root', 'layouts', name],
-          tokens
-        );
-        rootChildren.push(layoutNode);
+  // If no screens, try to render layouts
+  const layouts = dcfDocument.layouts || dcfDocument.layout;
+  if (layouts && typeof layouts === 'object') {
+    const layoutEntries = Object.entries(layouts);
+    if (layoutEntries.length > 0) {
+      const [firstLayoutName, firstLayout] = layoutEntries[0]; // Render the first layout
+      if (firstLayout && typeof firstLayout === 'object') {
+        const layoutObj = { ...firstLayout, name: firstLayoutName, type: 'layout' };
+        return createRenderNode(layoutObj, ['root', 'layouts', firstLayoutName], tokens);
       }
     }
   }
 
-  // Return a root frame containing all components and layouts
+  // If no layouts, render components
+  const components = dcfDocument.components || dcfDocument.component;
+  if (components && typeof components === 'object') {
+    const componentEntries = Object.entries(components);
+    if (componentEntries.length > 0) {
+      // Create a root frame containing all components for preview
+      const componentNodes: RenderNode[] = [];
+
+      for (const [name, component] of componentEntries) {
+        if (component && typeof component === 'object') {
+          // Create a wrapper frame for each component to show its name and properties
+          const componentObj = {
+            ...component,
+            name,
+            type: (component as any).type || name,
+            content: (component as any).content || [] // Add empty content if not defined
+          };
+
+          // Create the component node
+          const componentNode = createRenderNode(
+            componentObj,
+            ['root', 'components', name],
+            tokens
+          );
+
+          // Wrap the component in a labeled frame
+          const wrapperNode: RenderNode = {
+            kind: "frame",
+            id: `wrapper-${name}`,
+            layout: { type: "flex", direction: "column", gap: 8 },
+            style: {
+              padding: 12,
+              margin: 8,
+              border: "1px solid #ccc",
+              borderRadius: 4,
+              backgroundColor: "#f9f9f9"
+            },
+            children: [
+              {
+                kind: "text",
+                id: `label-${name}`,
+                text: `Component: ${name}`,
+                style: { fontWeight: "bold", marginBottom: 8 }
+              },
+              componentNode
+            ],
+            label: `Component Wrapper: ${name}`
+          };
+
+          componentNodes.push(wrapperNode);
+        }
+      }
+
+      // Return a root frame containing all component previews
+      return {
+        kind: "frame",
+        id: "node-root",
+        layout: { type: "flex", direction: "column", gap: 16 },
+        style: { padding: 16, width: "100%", minHeight: 400, backgroundColor: "#fff" },
+        children: componentNodes,
+        label: "Components Preview"
+      };
+    }
+  }
+
+  // If no components, try to render tokens visually
+  const tokenData = dcfDocument.tokens || dcfDocument.token;
+  if (tokenData && typeof tokenData === 'object') {
+    return createTokensRenderTree(tokenData);
+  }
+
+  // If nothing else, return an empty root
   return {
     kind: "frame",
     id: "node-root",
-    layout: { type: "flex", direction: "column", gap: 16 }, // Default layout for root
+    layout: { type: "flex", direction: "column", gap: 16 },
     style: { padding: 16, width: "auto" as const, minHeight: 400 },
-    children: rootChildren,
-    label: "DCF Document Root"
+    children: [],
+    label: "Empty DCF Document"
+  };
+}
+
+// Helper function to create a visual representation of tokens
+function createTokensRenderTree(tokens: any): RenderNode {
+  const tokenNodes: RenderNode[] = [];
+
+  // Process color tokens with visual preview
+  if (tokens.color) {
+    const colorNodes: RenderNode[] = [];
+
+    for (const [colorName, colorValue] of Object.entries(tokens.color)) {
+      const value = typeof colorValue === 'object' && colorValue.value ? colorValue.value : colorValue;
+      if (typeof value === 'string' && (value.startsWith('#') || value.startsWith('rgb'))) {
+        colorNodes.push({
+          kind: "frame",
+          id: `color-${colorName}`,
+          layout: { type: "flex", direction: "row", gap: 8 },
+          style: { alignItems: "center", padding: 8, marginBottom: 4 },
+          children: [
+            {
+              kind: "frame",
+              id: `color-box-${colorName}`,
+              style: {
+                width: 30,
+                height: 30,
+                backgroundColor: value,
+                border: "1px solid #ccc",
+                borderRadius: 4
+              },
+              children: [],
+              label: `Color Box: ${value}`
+            },
+            {
+              kind: "text",
+              id: `color-label-${colorName}`,
+              text: `${colorName}: ${value}`,
+              style: { fontSize: 14 }
+            }
+          ],
+          label: `Color Token: ${colorName}`
+        });
+      }
+    }
+
+    if (colorNodes.length > 0) {
+      tokenNodes.push({
+        kind: "frame",
+        id: "colors-section",
+        layout: { type: "flex", direction: "column", gap: 4 },
+        style: { marginBottom: 20 },
+        children: colorNodes,
+        label: "Color Tokens"
+      });
+    }
+  }
+
+  // Process space tokens
+  if (tokens.space) {
+    const spaceNodes: RenderNode[] = [];
+
+    for (const [spaceName, spaceValue] of Object.entries(tokens.space)) {
+      const value = typeof spaceValue === 'object' && spaceValue.value ? spaceValue.value : spaceValue;
+      spaceNodes.push({
+        kind: "frame",
+        id: `space-${spaceName}`,
+        layout: { type: "flex", direction: "row", gap: 8 },
+        style: { alignItems: "center", padding: 8, marginBottom: 4 },
+        children: [
+          {
+            kind: "frame",
+            id: `space-box-${spaceName}`,
+            style: {
+              width: typeof value === 'string' ? parseInt(value) || 0 : value || 0,
+              height: 20,
+              backgroundColor: "#e0e0e0",
+              border: "1px solid #ccc"
+            },
+            children: [],
+            label: `Space Box: ${value}`
+          },
+          {
+            kind: "text",
+            id: `space-label-${spaceName}`,
+            text: `${spaceName}: ${value}`,
+            style: { fontSize: 14 }
+          }
+        ],
+        label: `Space Token: ${spaceName}`
+      });
+    }
+
+    if (spaceNodes.length > 0) {
+      tokenNodes.push({
+        kind: "frame",
+        id: "spaces-section",
+        layout: { type: "flex", direction: "column", gap: 4 },
+        style: { marginBottom: 20 },
+        children: spaceNodes,
+        label: "Space Tokens"
+      });
+    }
+  }
+
+  return {
+    kind: "frame",
+    id: "node-root",
+    layout: { type: "flex", direction: "column", gap: 16 },
+    style: { padding: 16, width: "100%", minHeight: 400, backgroundColor: "#fff" },
+    children: tokenNodes,
+    label: "Tokens Preview"
   };
 }

@@ -1,0 +1,35 @@
+{
+  "dcf_version": "1.0.0",
+  "kind": "tokens",
+  "profile": "standard",
+  "tokens": {
+    "color": {
+      "primary": {
+        "value": "#007acc"
+      },
+      "secondary": {
+        "value": "#6c757d"
+      },
+      "success": {
+        "value": "#28a745"
+      },
+      "danger": {
+        "value": "#dc3545"
+      }
+    },
+    "space": {
+      "xs": {
+        "value": "0.25rem"
+      },
+      "sm": {
+        "value": "0.5rem"
+      },
+      "md": {
+        "value": "1rem"
+      },
+      "lg": {
+        "value": "1.5rem"
+      }
+    }
+  }
+}
