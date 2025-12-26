@@ -13,7 +13,6 @@ const PreviewApp: React.FC = () => {
   const [dcfData, setDcfData] = useState<DCFData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [showVisual, setShowVisual] = useState(true); // Toggle between visual and JSON view
   const [selectedKind, setSelectedKind] = useState<string | null>(null); // For filtering specific DCF kinds
 
   useEffect(() => {
@@ -285,17 +284,8 @@ const PreviewApp: React.FC = () => {
       <div className="header">
         <h1>DCF Preview</h1>
         <div className="view-toggle">
-          <button
-            onClick={() => setShowVisual(true)}
-            className={showVisual ? 'active' : ''}
-          >
+          <button className="active">
             Visual View
-          </button>
-          <button
-            onClick={() => setShowVisual(false)}
-            className={!showVisual ? 'active' : ''}
-          >
-            JSON View
           </button>
         </div>
       </div>
@@ -331,8 +321,7 @@ const PreviewApp: React.FC = () => {
       </div>
 
       <div className="dcf-content">
-        {showVisual ? (
-          <div className="visual-preview">
+        <div className="visual-preview">
             <h2>
               Visual Preview {selectedKind ? `- ${selectedKind.charAt(0).toUpperCase() + selectedKind.slice(1)}` : ''}
             </h2>
@@ -389,134 +378,10 @@ const PreviewApp: React.FC = () => {
             ) : (
               // Fallback when no specific kind is selected but there's no render tree
               <div className="no-content">
-                <p>No visual representation available. Switch to JSON view to see all content.</p>
+                <p>No visual representation available.</p>
               </div>
             )}
           </div>
-        ) : (
-          <>
-            {/* Show all DCF kinds based on selection */}
-            {(!selectedKind || selectedKind === 'tokens') && tokenEntries.length > 0 && (
-              <>
-                <h2>Tokens</h2>
-                <div className="tokens-preview">
-                  {tokenEntries.map(([name, tokenData]: [string, any]) => {
-                    // Render the actual tokens from the tokenData.tokens property
-                    if (tokenData.tokens && typeof tokenData.tokens === 'object') {
-                      return Object.entries(tokenData.tokens).map(([tokenName, tokenValue]: [string, any]) => (
-                        <TokenPreview key={`${name}-${tokenName}`} name={`${name}: ${tokenName}`} token={tokenValue} />
-                      ));
-                    }
-                    return null;
-                  })}
-                </div>
-              </>
-            )}
-
-            {(!selectedKind || selectedKind === 'components') && componentEntries.length > 0 && (
-              <>
-                <h2>Components</h2>
-                <div className="components-preview">
-                  {componentEntries.map(([name, componentData]: [string, any]) => {
-                    // Render the actual components from the componentData.components property
-                    if (componentData.components && typeof componentData.components === 'object') {
-                      return Object.entries(componentData.components).map(([componentName, componentValue]: [string, any]) => (
-                        <ComponentPreview key={`${name}-${componentName}`} name={`${name}: ${componentName}`} component={componentValue} />
-                      ));
-                    }
-                    return null;
-                  })}
-                </div>
-              </>
-            )}
-
-            {(!selectedKind || selectedKind === 'layouts') && layoutEntries.length > 0 && (
-              <>
-                <h2>Layouts</h2>
-                <div className="layouts-preview">
-                  {layoutEntries.map(([name, layoutData]: [string, any]) => {
-                    // Render the actual layouts from the layoutData.layouts property
-                    if (layoutData.layouts && typeof layoutData.layouts === 'object') {
-                      return Object.entries(layoutData.layouts).map(([layoutName, layoutValue]: [string, any]) => (
-                        <LayoutPreview key={`${name}-${layoutName}`} name={`${name}: ${layoutName}`} layout={layoutValue} />
-                      ));
-                    }
-                    return null;
-                  })}
-                </div>
-              </>
-            )}
-
-            {(!selectedKind || selectedKind === 'screens') && dcfData.document.screens && Object.keys(dcfData.document.screens).length > 0 && (
-              <>
-                <h2>Screens</h2>
-                <div className="screens-preview">
-                  {Object.entries(dcfData.document.screens).map(([name, screen]: [string, any]) => (
-                    <ScreenPreview key={name} name={name} screen={screen} />
-                  ))}
-                </div>
-              </>
-            )}
-
-            {(!selectedKind || selectedKind === 'navigation') && dcfData.document.navigation && Object.keys(dcfData.document.navigation).length > 0 && (
-              <>
-                <h2>Navigation</h2>
-                <div className="navigation-preview">
-                  {Object.entries(dcfData.document.navigation).map(([name, nav]: [string, any]) => (
-                    <NavigationPreview key={name} name={name} nav={nav} />
-                  ))}
-                </div>
-              </>
-            )}
-
-            {(!selectedKind || selectedKind === 'flows') && dcfData.document.flows && Object.keys(dcfData.document.flows).length > 0 && (
-              <>
-                <h2>Flows</h2>
-                <div className="flows-preview">
-                  {Object.entries(dcfData.document.flows).map(([name, flow]: [string, any]) => (
-                    <FlowPreview key={name} name={name} flow={flow} />
-                  ))}
-                </div>
-              </>
-            )}
-
-            {(!selectedKind || selectedKind === 'themes') && dcfData.document.themes && Object.keys(dcfData.document.themes).length > 0 && (
-              <>
-                <h2>Themes</h2>
-                <div className="themes-preview">
-                  {Object.entries(dcfData.document.themes).map(([name, theme]: [string, any]) => (
-                    <ThemePreview key={name} name={name} theme={theme} />
-                  ))}
-                </div>
-              </>
-            )}
-
-            {(!selectedKind || selectedKind === 'i18n') && dcfData.document.i18n && Object.keys(dcfData.document.i18n).length > 0 && (
-              <>
-                <h2>Internationalization</h2>
-                <div className="i18n-preview">
-                  {Object.entries(dcfData.document.i18n).map(([name, i18n]: [string, any]) => (
-                    <I18nPreview key={name} name={name} i18n={i18n} />
-                  ))}
-                </div>
-              </>
-            )}
-
-            {(!selectedKind || selectedKind === 'rules') && dcfData.document.rules && Object.keys(dcfData.document.rules).length > 0 && (
-              <>
-                <h2>Rules</h2>
-                <div className="rules-preview">
-                  {Object.entries(dcfData.document.rules).map(([name, rules]: [string, any]) => (
-                    <RulesPreview key={name} name={name} rules={rules} />
-                  ))}
-                </div>
-              </>
-            )}
-
-            {availableKinds.length === 0 && (
-              <p>No DCF content defined in the document</p>
-            )}
-          </>
         )}
       </div>
     </div>
