@@ -1,0 +1,20 @@
+{
+  "dcf_version": "1.0.0",
+  "kind": "i18n",
+  "name": "EnglishTranslations",
+  "locale": "en-US",
+  "strings": {
+    "welcome": {
+      "value": "Welcome",
+      "description": "Welcome message"
+    },
+    "login": {
+      "value": "Login",
+      "description": "Login button text"
+    },
+    "logout": {
+      "value": "Logout",
+      "description": "Logout button text"
+    }
+  }
+}

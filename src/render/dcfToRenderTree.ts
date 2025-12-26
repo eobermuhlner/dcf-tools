@@ -18,7 +18,7 @@ function getImageSrc(obj: any): string | undefined {
 }
 
 function getStyle(obj: any): any {
-  return obj.style || obj.styles || obj.props?.style;
+  return obj.style || obj.styles || obj.layout || obj.props?.style;
 }
 
 function getLayout(obj: any): any {
@@ -340,7 +340,7 @@ export function dcfToRenderTree(dcfDocument: any): RenderNode {
     tokens = consolidatedTokens;
   }
 
-  // First, try to find screens to render
+  // First, try to find screens to render (highest priority)
   const screens = dcfDocument.screens || dcfDocument.screen;
   if (screens && typeof screens === 'object') {
     // Process screens - this is the highest level
@@ -361,7 +361,33 @@ export function dcfToRenderTree(dcfDocument: any): RenderNode {
     }
   }
 
-  // If no screens, try to render layouts
+  // If no screens, try to render flows
+  const flows = dcfDocument.flows || dcfDocument.flow;
+  if (flows && typeof flows === 'object') {
+    const flowEntries = Object.entries(flows);
+    if (flowEntries.length > 0) {
+      const [firstFlowName, firstFlow] = flowEntries[0]; // Render the first flow
+      if (firstFlow && typeof firstFlow === 'object') {
+        // Create a visualization for the flow
+        return createFlowRenderTree(firstFlow, firstFlowName, tokens);
+      }
+    }
+  }
+
+  // If no flows, try to render navigation
+  const navigation = dcfDocument.navigation || dcfDocument.nav;
+  if (navigation && typeof navigation === 'object') {
+    const navEntries = Object.entries(navigation);
+    if (navEntries.length > 0) {
+      const [firstNavName, firstNav] = navEntries[0]; // Render the first navigation
+      if (firstNav && typeof firstNav === 'object') {
+        // Create a visualization for the navigation
+        return createNavigationRenderTree(firstNav, firstNavName, tokens);
+      }
+    }
+  }
+
+  // If no navigation, try to render layouts
   const layouts = dcfDocument.layouts || dcfDocument.layout;
   if (layouts && typeof layouts === 'object') {
     const layoutEntries = Object.entries(layouts);
@@ -400,17 +426,18 @@ export function dcfToRenderTree(dcfDocument: any): RenderNode {
             tokens
           );
 
-          // If the component has styles, render it as a styled visual element
+          // If the component has styles or layout, render it as a styled visual element
           // This handles components that define visual appearance but no content structure
-          const hasStyles = (component as any).styles;
+          const componentStyles = (component as any).styles || (component as any).layout;
+          const hasStyles = !!componentStyles;
           const isEmptyFrame = componentNode.kind === 'frame' && componentNode.children.length === 0;
           const isUnknown = componentNode.kind === 'unknown';
 
           if (hasStyles && (isEmptyFrame || isUnknown)) {
-            // Resolve the component's styles with token values
-            const resolvedStyles = resolveStyleTokens((component as any).styles, tokens);
+            // Resolve the component's styles/layout with token values
+            const resolvedStyles = resolveStyleTokens(componentStyles, tokens);
 
-            // Create a styled button-like element that visually represents the component
+            // Create a styled element that visually represents the component
             componentNode = {
               kind: "frame",
               id: componentNode.id,
@@ -603,5 +630,130 @@ function createTokensRenderTree(tokens: any): RenderNode {
     style: { padding: 16, width: "100%", minHeight: 400, backgroundColor: "#fff" },
     children: tokenNodes,
     label: "Tokens Preview"
+  };
+}
+
+// Helper function to create a visual representation of navigation
+function createNavigationRenderTree(navigation: any, name: string, tokens: any): RenderNode {
+  const routeNodes: RenderNode[] = [];
+
+  // Process routes if they exist
+  if (navigation.routes) {
+    for (const [routeName, route] of Object.entries(navigation.routes)) {
+      const routeNode: RenderNode = {
+        kind: "frame",
+        id: `route-${routeName}`,
+        layout: { type: "flex", direction: "row", gap: 8 },
+        style: {
+          alignItems: "center",
+          padding: 8,
+          marginBottom: 4,
+          border: "1px solid #ccc",
+          borderRadius: 4,
+          backgroundColor: "#f0f8ff"
+        },
+        children: [
+          {
+            kind: "text",
+            id: `route-name-${routeName}`,
+            text: routeName,
+            style: { fontWeight: "bold", fontSize: 14 }
+          },
+          {
+            kind: "text",
+            id: `route-path-${routeName}`,
+            text: `Path: ${(route as any).path || 'N/A'}`,
+            style: { fontSize: 12, color: "#666" }
+          },
+          {
+            kind: "text",
+            id: `route-screen-${routeName}`,
+            text: `Screen: ${(route as any).screen || 'N/A'}`,
+            style: { fontSize: 12, color: "#666" }
+          }
+        ],
+        label: `Route: ${routeName}`
+      };
+      routeNodes.push(routeNode);
+    }
+  }
+
+  return {
+    kind: "frame",
+    id: "node-root",
+    layout: { type: "flex", direction: "column", gap: 16 },
+    style: { padding: 16, width: "100%", minHeight: 400, backgroundColor: "#fff" },
+    children: [
+      {
+        kind: "text",
+        id: "nav-title",
+        text: `Navigation: ${name}`,
+        style: { fontSize: 18, fontWeight: "bold", marginBottom: 16 }
+      },
+      ...routeNodes
+    ],
+    label: `Navigation Preview: ${name}`
+  };
+}
+
+// Helper function to create a visual representation of flows
+function createFlowRenderTree(flow: any, name: string, tokens: any): RenderNode {
+  const stepNodes: RenderNode[] = [];
+
+  // Process steps if they exist
+  if (flow.steps) {
+    for (const [index, step] of (flow.steps as any[]).entries()) {
+      const stepNode: RenderNode = {
+        kind: "frame",
+        id: `step-${index}`,
+        layout: { type: "flex", direction: "column", gap: 4 },
+        style: {
+          padding: 8,
+          marginBottom: 4,
+          border: "1px solid #ccc",
+          borderRadius: 4,
+          backgroundColor: "#f5f5f5"
+        },
+        children: [
+          {
+            kind: "text",
+            id: `step-screen-${index}`,
+            text: `Step ${index + 1}: Screen - ${(step as any).screen || 'N/A'}`,
+            style: { fontWeight: "bold", fontSize: 14 }
+          },
+          {
+            kind: "text",
+            id: `step-on-submit-${index}`,
+            text: `On Submit: ${(step as any).on_submit?.success || 'N/A'}`,
+            style: { fontSize: 12, color: "#666" }
+          },
+          {
+            kind: "text",
+            id: `step-on-cancel-${index}`,
+            text: `On Cancel: ${(step as any).on_cancel || 'N/A'}`,
+            style: { fontSize: 12, color: "#666" }
+          }
+        ],
+        label: `Step: ${index}`
+      };
+      stepNodes.push(stepNode);
+    }
+  }
+
+  return {
+    kind: "frame",
+    id: "node-root",
+    layout: { type: "flex", direction: "column", gap: 16 },
+    style: { padding: 16, width: "100%", minHeight: 400, backgroundColor: "#fff" },
+    children: [
+      {
+        kind: "text",
+        id: "flow-title",
+        text: `Flow: ${name}`,
+        style: { fontSize: 18, fontWeight: "bold", marginBottom: 16 }
+      },
+      ...stepNodes
+    ],
+    label: `Flow Preview: ${name}`
   };
 }

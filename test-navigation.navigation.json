@@ -1,0 +1,35 @@
+{
+  "dcf_version": "1.0.0",
+  "kind": "navigation",
+  "profile": "standard",
+  "name": "MainAppNavigation",
+  "routes": {
+    "Home": {
+      "path": "/",
+      "screen": "HomeScreen",
+      "layout": "MainLayout"
+    },
+    "About": {
+      "path": "/about",
+      "screen": "AboutScreen",
+      "parent": "Home"
+    },
+    "Contact": {
+      "path": "/contact",
+      "screen": "ContactScreen",
+      "parent": "Home"
+    }
+  },
+  "transitions": [
+    {
+      "from": "Home",
+      "to": "About",
+      "trigger": "click"
+    },
+    {
+      "from": "Home",
+      "to": "Contact",
+      "trigger": "click"
+    }
+  ]
+}

@@ -1,0 +1,32 @@
+{
+  "dcf_version": "1.0.0",
+  "kind": "flow",
+  "profile": "standard",
+  "name": "UserRegistrationFlow",
+  "start": "RegistrationScreen",
+  "steps": [
+    {
+      "screen": "RegistrationScreen",
+      "on_submit": {
+        "success": "VerificationScreen",
+        "error": "RegistrationScreen"
+      },
+      "on_cancel": "HomeScreen"
+    },
+    {
+      "screen": "VerificationScreen",
+      "on_submit": {
+        "success": "WelcomeScreen",
+        "error": "VerificationScreen"
+      },
+      "on_cancel": "RegistrationScreen"
+    },
+    {
+      "screen": "WelcomeScreen",
+      "on_submit": {
+        "success": "HomeScreen",
+        "error": "WelcomeScreen"
+      }
+    }
+  ]
+}

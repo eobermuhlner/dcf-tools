@@ -14,6 +14,7 @@ const PreviewApp: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showVisual, setShowVisual] = useState(true); // Toggle between visual and JSON view
+  const [selectedKind, setSelectedKind] = useState<string | null>(null); // For filtering specific DCF kinds
 
   useEffect(() => {
     let pollInterval: NodeJS.Timeout;
@@ -116,10 +117,44 @@ const PreviewApp: React.FC = () => {
     );
   }
 
+  // Get available DCF kinds from the document
+  const availableKinds = [];
+  if (dcfData.document.tokens) availableKinds.push('tokens');
+  if (dcfData.document.components) availableKinds.push('components');
+  if (dcfData.document.layouts) availableKinds.push('layouts');
+  if (dcfData.document.screens) availableKinds.push('screens');
+  if (dcfData.document.navigation) availableKinds.push('navigation');
+  if (dcfData.document.flows) availableKinds.push('flows');
+  if (dcfData.document.themes) availableKinds.push('themes');
+  if (dcfData.document.i18n) availableKinds.push('i18n');
+  if (dcfData.document.rules) availableKinds.push('rules');
+
   // Convert DCF document to render tree for visual representation
+  // Apply filtering based on selected kind for visual view as well
+  let filteredDocument = dcfData.document;
+  if (selectedKind) {
+    // Create a filtered document containing only the selected kind
+    filteredDocument = {};
+    // Copy over top-level properties
+    if (dcfData.document.dcf_version) filteredDocument.dcf_version = dcfData.document.dcf_version;
+    if (dcfData.document.profile) filteredDocument.profile = dcfData.document.profile;
+    if (dcfData.document.renderer) filteredDocument.renderer = dcfData.document.renderer;
+
+    // Add only the selected kind
+    if (selectedKind === 'tokens' && dcfData.document.tokens) filteredDocument.tokens = dcfData.document.tokens;
+    if (selectedKind === 'components' && dcfData.document.components) filteredDocument.components = dcfData.document.components;
+    if (selectedKind === 'layouts' && dcfData.document.layouts) filteredDocument.layouts = dcfData.document.layouts;
+    if (selectedKind === 'screens' && dcfData.document.screens) filteredDocument.screens = dcfData.document.screens;
+    if (selectedKind === 'navigation' && dcfData.document.navigation) filteredDocument.navigation = dcfData.document.navigation;
+    if (selectedKind === 'flows' && dcfData.document.flows) filteredDocument.flows = dcfData.document.flows;
+    if (selectedKind === 'themes' && dcfData.document.themes) filteredDocument.themes = dcfData.document.themes;
+    if (selectedKind === 'i18n' && dcfData.document.i18n) filteredDocument.i18n = dcfData.document.i18n;
+    if (selectedKind === 'rules' && dcfData.document.rules) filteredDocument.rules = dcfData.document.rules;
+  }
+
   let renderTree = null;
   try {
-    renderTree = dcfToRenderTree(dcfData.document);
+    renderTree = dcfToRenderTree(filteredDocument);
   } catch (err) {
     console.error('Error converting DCF to render tree:', err);
   }
@@ -148,19 +183,46 @@ const PreviewApp: React.FC = () => {
         <h2>Document Information</h2>
         <p><strong>Version:</strong> {dcfData.validation.dcf_version || 'Unknown'}</p>
         <p><strong>Profile:</strong> {dcfData.validation.profile || 'Unknown'}</p>
+
+        {/* Navigation for different DCF kinds */}
+        {availableKinds.length > 0 && (
+          <div className="kind-navigation">
+            <h3>Available Kinds:</h3>
+            {availableKinds.map(kind => (
+              <button
+                key={kind}
+                className={selectedKind === kind ? 'kind-button active' : 'kind-button'}
+                onClick={() => setSelectedKind(selectedKind === kind ? null : kind)}
+              >
+                {kind.charAt(0).toUpperCase() + kind.slice(1)}
+              </button>
+            ))}
+            {availableKinds.length > 0 && (
+              <button
+                className={!selectedKind ? 'kind-button active' : 'kind-button'}
+                onClick={() => setSelectedKind(null)}
+              >
+                All
+              </button>
+            )}
+          </div>
+        )}
       </div>
 
       <div className="dcf-content">
         {showVisual && renderTree ? (
           <div className="visual-preview">
-            <h2>Visual Preview</h2>
+            <h2>
+              Visual Preview {selectedKind ? `- ${selectedKind.charAt(0).toUpperCase() + selectedKind.slice(1)}` : ''}
+            </h2>
             <div className="visual-container">
               <RenderNodeView node={renderTree} />
             </div>
           </div>
         ) : (
           <>
-            {dcfData.document.tokens && (
+            {/* Show all DCF kinds based on selection */}
+            {(!selectedKind || selectedKind === 'tokens') && dcfData.document.tokens && (
               <>
                 <h2>Tokens</h2>
                 <div className="tokens-preview">
@@ -171,7 +233,7 @@ const PreviewApp: React.FC = () => {
               </>
             )}
 
-            {dcfData.document.components && (
+            {(!selectedKind || selectedKind === 'components') && dcfData.document.components && (
               <>
                 <h2>Components</h2>
                 <div className="components-preview">
@@ -182,7 +244,7 @@ const PreviewApp: React.FC = () => {
               </>
             )}
 
-            {dcfData.document.layouts && (
+            {(!selectedKind || selectedKind === 'layouts') && dcfData.document.layouts && (
               <>
                 <h2>Layouts</h2>
                 <div className="layouts-preview">
@@ -193,8 +255,74 @@ const PreviewApp: React.FC = () => {
               </>
             )}
 
-            {!dcfData.document.tokens && !dcfData.document.components && !dcfData.document.layouts && (
-              <p>No tokens, components, or layouts defined in the DCF document</p>
+            {(!selectedKind || selectedKind === 'screens') && dcfData.document.screens && (
+              <>
+                <h2>Screens</h2>
+                <div className="screens-preview">
+                  {Object.entries(dcfData.document.screens).map(([name, screen]: [string, any]) => (
+                    <ScreenPreview key={name} name={name} screen={screen} />
+                  ))}
+                </div>
+              </>
+            )}
+
+            {(!selectedKind || selectedKind === 'navigation') && dcfData.document.navigation && (
+              <>
+                <h2>Navigation</h2>
+                <div className="navigation-preview">
+                  {Object.entries(dcfData.document.navigation).map(([name, nav]: [string, any]) => (
+                    <NavigationPreview key={name} name={name} nav={nav} />
+                  ))}
+                </div>
+              </>
+            )}
+
+            {(!selectedKind || selectedKind === 'flows') && dcfData.document.flows && (
+              <>
+                <h2>Flows</h2>
+                <div className="flows-preview">
+                  {Object.entries(dcfData.document.flows).map(([name, flow]: [string, any]) => (
+                    <FlowPreview key={name} name={name} flow={flow} />
+                  ))}
+                </div>
+              </>
+            )}
+
+            {(!selectedKind || selectedKind === 'themes') && dcfData.document.themes && (
+              <>
+                <h2>Themes</h2>
+                <div className="themes-preview">
+                  {Object.entries(dcfData.document.themes).map(([name, theme]: [string, any]) => (
+                    <ThemePreview key={name} name={name} theme={theme} />
+                  ))}
+                </div>
+              </>
+            )}
+
+            {(!selectedKind || selectedKind === 'i18n') && dcfData.document.i18n && (
+              <>
+                <h2>Internationalization</h2>
+                <div className="i18n-preview">
+                  {Object.entries(dcfData.document.i18n).map(([name, i18n]: [string, any]) => (
+                    <I18nPreview key={name} name={name} i18n={i18n} />
+                  ))}
+                </div>
+              </>
+            )}
+
+            {(!selectedKind || selectedKind === 'rules') && dcfData.document.rules && (
+              <>
+                <h2>Rules</h2>
+                <div className="rules-preview">
+                  {Object.entries(dcfData.document.rules).map(([name, rules]: [string, any]) => (
+                    <RulesPreview key={name} name={name} rules={rules} />
+                  ))}
+                </div>
+              </>
+            )}
+
+            {availableKinds.length === 0 && (
+              <p>No DCF content defined in the document</p>
             )}
           </>
         )}
@@ -261,6 +389,154 @@ const LayoutPreview: React.FC<{ name: string; layout: any }> = ({ name, layout }
   );
 };
 
+// Component to render individual tokens
+const TokenPreview: React.FC<{ name: string; token: any }> = ({ name, token }) => {
+  if (typeof token === 'object' && token !== null && !Array.isArray(token)) {
+    return (
+      <div className="token-card">
+        <h3>{name}</h3>
+        <div className="token-children">
+          {Object.entries(token).map(([subName, subToken]) => (
+            <TokenPreview key={subName} name={`${name}.${subName}`} token={subToken} />
+          ))}
+        </div>
+      </div>
+    );
+  } else {
+    // For primitive tokens, show them with visual indicators where appropriate
+    const isColor = typeof token === 'string' && (token.startsWith('#') || token.startsWith('rgb') || token.startsWith('hsl'));
+
+    return (
+      <div className="token-card">
+        <h4>{name}: <span className="token-value">{token}</span></h4>
+        {isColor && (
+          <div className="color-preview" style={{ backgroundColor: token, width: '50px', height: '20px', border: '1px solid #ccc' }}></div>
+        )}
+      </div>
+    );
+  }
+};
+
+// Component to render individual components
+const ComponentPreview: React.FC<{ name: string; component: any }> = ({ name, component }) => {
+  return (
+    <div className="component-card">
+      <h3>{name}</h3>
+      <div className="component-properties">
+        <details>
+          <summary>Properties</summary>
+          <pre>{JSON.stringify(component, null, 2)}</pre>
+        </details>
+      </div>
+    </div>
+  );
+};
+
+// Component to render individual layouts
+const LayoutPreview: React.FC<{ name: string; layout: any }> = ({ name, layout }) => {
+  return (
+    <div className="layout-card">
+      <h3>{name}</h3>
+      <div className="layout-properties">
+        <details>
+          <summary>Properties</summary>
+          <pre>{JSON.stringify(layout, null, 2)}</pre>
+        </details>
+      </div>
+    </div>
+  );
+};
+
+// Component to render individual screens
+const ScreenPreview: React.FC<{ name: string; screen: any }> = ({ name, screen }) => {
+  return (
+    <div className="screen-card">
+      <h3>{name}</h3>
+      <div className="screen-properties">
+        <details>
+          <summary>Properties</summary>
+          <pre>{JSON.stringify(screen, null, 2)}</pre>
+        </details>
+      </div>
+    </div>
+  );
+};
+
+// Component to render individual navigation structures
+const NavigationPreview: React.FC<{ name: string; nav: any }> = ({ name, nav }) => {
+  return (
+    <div className="navigation-card">
+      <h3>{name}</h3>
+      <div className="navigation-properties">
+        <details>
+          <summary>Properties</summary>
+          <pre>{JSON.stringify(nav, null, 2)}</pre>
+        </details>
+      </div>
+    </div>
+  );
+};
+
+// Component to render individual flow definitions
+const FlowPreview: React.FC<{ name: string; flow: any }> = ({ name, flow }) => {
+  return (
+    <div className="flow-card">
+      <h3>{name}</h3>
+      <div className="flow-properties">
+        <details>
+          <summary>Properties</summary>
+          <pre>{JSON.stringify(flow, null, 2)}</pre>
+        </details>
+      </div>
+    </div>
+  );
+};
+
+// Component to render individual theme definitions
+const ThemePreview: React.FC<{ name: string; theme: any }> = ({ name, theme }) => {
+  return (
+    <div className="theme-card">
+      <h3>{name}</h3>
+      <div className="theme-properties">
+        <details>
+          <summary>Properties</summary>
+          <pre>{JSON.stringify(theme, null, 2)}</pre>
+        </details>
+      </div>
+    </div>
+  );
+};
+
+// Component to render individual i18n definitions
+const I18nPreview: React.FC<{ name: string; i18n: any }> = ({ name, i18n }) => {
+  return (
+    <div className="i18n-card">
+      <h3>{name}</h3>
+      <div className="i18n-properties">
+        <details>
+          <summary>Properties</summary>
+          <pre>{JSON.stringify(i18n, null, 2)}</pre>
+        </details>
+      </div>
+    </div>
+  );
+};
+
+// Component to render individual rules definitions
+const RulesPreview: React.FC<{ name: string; rules: any }> = ({ name, rules }) => {
+  return (
+    <div className="rules-card">
+      <h3>{name}</h3>
+      <div className="rules-properties">
+        <details>
+          <summary>Properties</summary>
+          <pre>{JSON.stringify(rules, null, 2)}</pre>
+        </details>
+      </div>
+    </div>
+  );
+};
+
 // Basic CSS styles
 const styles = `
   .preview-container {
@@ -290,6 +566,29 @@ const styles = `
     color: white;
   }
 
+  .kind-navigation {
+    margin-top: 10px;
+  }
+
+  .kind-navigation h3 {
+    margin-bottom: 8px;
+  }
+
+  .kind-button {
+    margin-right: 8px;
+    margin-bottom: 8px;
+    padding: 6px 12px;
+    border: 1px solid #ccc;
+    background-color: #f0f0f0;
+    cursor: pointer;
+    border-radius: 4px;
+  }
+
+  .kind-button.active {
+    background-color: #007acc;
+    color: white;
+  }
+
   .visual-container {
     border: 1px solid #ddd;
     border-radius: 4px;
@@ -306,7 +605,7 @@ const styles = `
     margin: 16px 0;
   }
 
-  .component-card, .token-card, .layout-card {
+  .component-card, .token-card, .layout-card, .screen-card, .navigation-card, .flow-card, .theme-card, .i18n-card, .rules-card {
     border: 1px solid #ddd;
     border-radius: 4px;
     padding: 16px;
@@ -314,7 +613,7 @@ const styles = `
     background-color: #f9f9f9;
   }
 
-  .components-preview, .tokens-preview, .layouts-preview {
+  .components-preview, .tokens-preview, .layouts-preview, .screens-preview, .navigation-preview, .flows-preview, .themes-preview, .i18n-preview, .rules-preview {
     margin: 16px 0;
   }
 

@@ -534,17 +534,18 @@ export async function startPreviewServer(paths: string[], options: PreviewOption
   // Initial load
   currentData = await loadDCFDataForServer();
 
+  // Declare reloadTimeout in a broader scope to be accessible during shutdown
+  let reloadTimeout: NodeJS.Timeout | null = null;
+  let watcher: chokidar.FSWatcher | undefined;
+
   // In non-static mode, still watch files to update the data when they change
   if (!staticDir && !snapshotDir) {
-    const watcher = chokidar.watch(discoveredFiles, {
+    watcher = chokidar.watch(discoveredFiles, {
       persistent: true,
       ignoreInitial: true,
       ignorePermissionErrors: true,
       awaitWriteFinish: true // Wait for files to be completely written before triggering
     });
-
-    // Debounce function to avoid rapid updates
-    let reloadTimeout: NodeJS.Timeout | null = null;
 
     watcher.on('change', async (filePath) => {
       if (!options.quiet) {
@@ -725,7 +726,7 @@ export async function startPreviewServer(paths: string[], options: PreviewOption
         clearTimeout(reloadTimeout);
       }
       // Only close watcher if it was created (in non-static mode)
-      if (typeof watcher !== 'undefined') {
+      if (watcher) {
         watcher.close();
       }
       server.close(() => {
