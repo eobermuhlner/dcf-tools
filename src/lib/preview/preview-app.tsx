@@ -210,14 +210,68 @@ const PreviewApp: React.FC = () => {
       </div>
 
       <div className="dcf-content">
-        {showVisual && renderTree ? (
+        {showVisual ? (
           <div className="visual-preview">
             <h2>
               Visual Preview {selectedKind ? `- ${selectedKind.charAt(0).toUpperCase() + selectedKind.slice(1)}` : ''}
             </h2>
-            <div className="visual-container">
-              <RenderNodeView node={renderTree} />
-            </div>
+            {renderTree ? (
+              <div className="visual-container">
+                <RenderNodeView node={renderTree} />
+              </div>
+            ) : (
+              // Show token preview when in visual mode but no render tree exists (e.g., for tokens)
+              <>
+                {(!selectedKind || selectedKind === 'tokens') && dcfData.document.tokens && Object.keys(dcfData.document.tokens).length > 0 && (
+                  <>
+                    <h3>Tokens Preview</h3>
+                    <div className="tokens-preview">
+                      {Object.entries(dcfData.document.tokens).map(([name, token]: [string, any]) => (
+                        <TokenPreview key={name} name={name} token={token} />
+                      ))}
+                    </div>
+                  </>
+                )}
+
+                {(!selectedKind || selectedKind === 'components') && dcfData.document.components && Object.keys(dcfData.document.components).length > 0 && (
+                  <>
+                    <h3>Components Preview</h3>
+                    <div className="components-preview">
+                      {Object.entries(dcfData.document.components).map(([name, component]: [string, any]) => (
+                        <ComponentPreview key={name} name={name} component={component} />
+                      ))}
+                    </div>
+                  </>
+                )}
+
+                {(!selectedKind || selectedKind === 'layouts') && dcfData.document.layouts && Object.keys(dcfData.document.layouts).length > 0 && (
+                  <>
+                    <h3>Layouts Preview</h3>
+                    <div className="layouts-preview">
+                      {Object.entries(dcfData.document.layouts).map(([name, layout]: [string, any]) => (
+                        <LayoutPreview key={name} name={name} layout={layout} />
+                      ))}
+                    </div>
+                  </>
+                )}
+
+                {/* Show message if no content is available for the selected kind */}
+                {selectedKind &&
+                 !((selectedKind === 'tokens' && dcfData.document.tokens && Object.keys(dcfData.document.tokens).length > 0) ||
+                   (selectedKind === 'components' && dcfData.document.components && Object.keys(dcfData.document.components).length > 0) ||
+                   (selectedKind === 'layouts' && dcfData.document.layouts && Object.keys(dcfData.document.layouts).length > 0)) && (
+                  <div className="no-content">
+                    <p>No content available for {selectedKind}</p>
+                  </div>
+                )}
+
+                {!selectedKind && (
+                  <div className="no-content">
+                    <p>No visual representation available. Switch to JSON view to see all content.</p>
+                  </div>
+                )}
+              </>
+            )}
           </div>
         ) : (
           <>
@@ -595,6 +649,13 @@ const styles = `
     padding: 12px;
     overflow-x: auto;
     font-size: 12px;
+  }
+
+  .no-content {
+    padding: 20px;
+    text-align: center;
+    color: #666;
+    font-style: italic;
   }
 `;
 
