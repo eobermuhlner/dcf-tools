@@ -119,15 +119,15 @@ const PreviewApp: React.FC = () => {
 
   // Get available DCF kinds from the document
   const availableKinds = [];
-  if (dcfData.document.tokens) availableKinds.push('tokens');
-  if (dcfData.document.components) availableKinds.push('components');
-  if (dcfData.document.layouts) availableKinds.push('layouts');
-  if (dcfData.document.screens) availableKinds.push('screens');
-  if (dcfData.document.navigation) availableKinds.push('navigation');
-  if (dcfData.document.flows) availableKinds.push('flows');
-  if (dcfData.document.themes) availableKinds.push('themes');
-  if (dcfData.document.i18n) availableKinds.push('i18n');
-  if (dcfData.document.rules) availableKinds.push('rules');
+  if (dcfData.document.tokens && Object.keys(dcfData.document.tokens).length > 0) availableKinds.push('tokens');
+  if (dcfData.document.components && Object.keys(dcfData.document.components).length > 0) availableKinds.push('components');
+  if (dcfData.document.layouts && Object.keys(dcfData.document.layouts).length > 0) availableKinds.push('layouts');
+  if (dcfData.document.screens && Object.keys(dcfData.document.screens).length > 0) availableKinds.push('screens');
+  if (dcfData.document.navigation && Object.keys(dcfData.document.navigation).length > 0) availableKinds.push('navigation');
+  if (dcfData.document.flows && Object.keys(dcfData.document.flows).length > 0) availableKinds.push('flows');
+  if (dcfData.document.themes && Object.keys(dcfData.document.themes).length > 0) availableKinds.push('themes');
+  if (dcfData.document.i18n && Object.keys(dcfData.document.i18n).length > 0) availableKinds.push('i18n');
+  if (dcfData.document.rules && Object.keys(dcfData.document.rules).length > 0) availableKinds.push('rules');
 
   // Convert DCF document to render tree for visual representation
   // Apply filtering based on selected kind for visual view as well
@@ -141,15 +141,15 @@ const PreviewApp: React.FC = () => {
     if (dcfData.document.renderer) filteredDocument.renderer = dcfData.document.renderer;
 
     // Add only the selected kind
-    if (selectedKind === 'tokens' && dcfData.document.tokens) filteredDocument.tokens = dcfData.document.tokens;
-    if (selectedKind === 'components' && dcfData.document.components) filteredDocument.components = dcfData.document.components;
-    if (selectedKind === 'layouts' && dcfData.document.layouts) filteredDocument.layouts = dcfData.document.layouts;
-    if (selectedKind === 'screens' && dcfData.document.screens) filteredDocument.screens = dcfData.document.screens;
-    if (selectedKind === 'navigation' && dcfData.document.navigation) filteredDocument.navigation = dcfData.document.navigation;
-    if (selectedKind === 'flows' && dcfData.document.flows) filteredDocument.flows = dcfData.document.flows;
-    if (selectedKind === 'themes' && dcfData.document.themes) filteredDocument.themes = dcfData.document.themes;
-    if (selectedKind === 'i18n' && dcfData.document.i18n) filteredDocument.i18n = dcfData.document.i18n;
-    if (selectedKind === 'rules' && dcfData.document.rules) filteredDocument.rules = dcfData.document.rules;
+    if (selectedKind === 'tokens' && dcfData.document.tokens && Object.keys(dcfData.document.tokens).length > 0) filteredDocument.tokens = dcfData.document.tokens;
+    if (selectedKind === 'components' && dcfData.document.components && Object.keys(dcfData.document.components).length > 0) filteredDocument.components = dcfData.document.components;
+    if (selectedKind === 'layouts' && dcfData.document.layouts && Object.keys(dcfData.document.layouts).length > 0) filteredDocument.layouts = dcfData.document.layouts;
+    if (selectedKind === 'screens' && dcfData.document.screens && Object.keys(dcfData.document.screens).length > 0) filteredDocument.screens = dcfData.document.screens;
+    if (selectedKind === 'navigation' && dcfData.document.navigation && Object.keys(dcfData.document.navigation).length > 0) filteredDocument.navigation = dcfData.document.navigation;
+    if (selectedKind === 'flows' && dcfData.document.flows && Object.keys(dcfData.document.flows).length > 0) filteredDocument.flows = dcfData.document.flows;
+    if (selectedKind === 'themes' && dcfData.document.themes && Object.keys(dcfData.document.themes).length > 0) filteredDocument.themes = dcfData.document.themes;
+    if (selectedKind === 'i18n' && dcfData.document.i18n && Object.keys(dcfData.document.i18n).length > 0) filteredDocument.i18n = dcfData.document.i18n;
+    if (selectedKind === 'rules' && dcfData.document.rules && Object.keys(dcfData.document.rules).length > 0) filteredDocument.rules = dcfData.document.rules;
   }
 
   let renderTree = null;
@@ -222,7 +222,7 @@ const PreviewApp: React.FC = () => {
         ) : (
           <>
             {/* Show all DCF kinds based on selection */}
-            {(!selectedKind || selectedKind === 'tokens') && dcfData.document.tokens && (
+            {(!selectedKind || selectedKind === 'tokens') && dcfData.document.tokens && Object.keys(dcfData.document.tokens).length > 0 && (
               <>
                 <h2>Tokens</h2>
                 <div className="tokens-preview">
@@ -233,7 +233,7 @@ const PreviewApp: React.FC = () => {
               </>
             )}
 
-            {(!selectedKind || selectedKind === 'components') && dcfData.document.components && (
+            {(!selectedKind || selectedKind === 'components') && dcfData.document.components && Object.keys(dcfData.document.components).length > 0 && (
               <>
                 <h2>Components</h2>
                 <div className="components-preview">
@@ -244,7 +244,7 @@ const PreviewApp: React.FC = () => {
               </>
             )}
 
-            {(!selectedKind || selectedKind === 'layouts') && dcfData.document.layouts && (
+            {(!selectedKind || selectedKind === 'layouts') && dcfData.document.layouts && Object.keys(dcfData.document.layouts).length > 0 && (
               <>
                 <h2>Layouts</h2>
                 <div className="layouts-preview">
@@ -255,7 +255,7 @@ const PreviewApp: React.FC = () => {
               </>
             )}
 
-            {(!selectedKind || selectedKind === 'screens') && dcfData.document.screens && (
+            {(!selectedKind || selectedKind === 'screens') && dcfData.document.screens && Object.keys(dcfData.document.screens).length > 0 && (
               <>
                 <h2>Screens</h2>
                 <div className="screens-preview">
@@ -266,7 +266,7 @@ const PreviewApp: React.FC = () => {
               </>
             )}
 
-            {(!selectedKind || selectedKind === 'navigation') && dcfData.document.navigation && (
+            {(!selectedKind || selectedKind === 'navigation') && dcfData.document.navigation && Object.keys(dcfData.document.navigation).length > 0 && (
               <>
                 <h2>Navigation</h2>
                 <div className="navigation-preview">
@@ -277,7 +277,7 @@ const PreviewApp: React.FC = () => {
               </>
             )}
 
-            {(!selectedKind || selectedKind === 'flows') && dcfData.document.flows && (
+            {(!selectedKind || selectedKind === 'flows') && dcfData.document.flows && Object.keys(dcfData.document.flows).length > 0 && (
               <>
                 <h2>Flows</h2>
                 <div className="flows-preview">
@@ -288,7 +288,7 @@ const PreviewApp: React.FC = () => {
               </>
             )}
 
-            {(!selectedKind || selectedKind === 'themes') && dcfData.document.themes && (
+            {(!selectedKind || selectedKind === 'themes') && dcfData.document.themes && Object.keys(dcfData.document.themes).length > 0 && (
               <>
                 <h2>Themes</h2>
                 <div className="themes-preview">
@@ -299,7 +299,7 @@ const PreviewApp: React.FC = () => {
               </>
             )}
 
-            {(!selectedKind || selectedKind === 'i18n') && dcfData.document.i18n && (
+            {(!selectedKind || selectedKind === 'i18n') && dcfData.document.i18n && Object.keys(dcfData.document.i18n).length > 0 && (
               <>
                 <h2>Internationalization</h2>
                 <div className="i18n-preview">
@@ -310,7 +310,7 @@ const PreviewApp: React.FC = () => {
               </>
             )}
 
-            {(!selectedKind || selectedKind === 'rules') && dcfData.document.rules && (
+            {(!selectedKind || selectedKind === 'rules') && dcfData.document.rules && Object.keys(dcfData.document.rules).length > 0 && (
               <>
                 <h2>Rules</h2>
                 <div className="rules-preview">

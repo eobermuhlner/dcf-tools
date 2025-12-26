@@ -340,6 +340,26 @@ export function dcfToRenderTree(dcfDocument: any): RenderNode {
     tokens = consolidatedTokens;
   }
 
+  // Also consolidate if the document has tokens nested in the top-level structure
+  if (dcfDocument.tokens) {
+    const docTokens = dcfDocument.tokens;
+    if (typeof docTokens === 'object' && !docTokens.color && !docTokens.space && !docTokens.font) {
+      // This means tokens are stored under filename keys, consolidate them
+      const consolidated: any = {};
+      for (const [key, value] of Object.entries(docTokens)) {
+        if (typeof value === 'object' && value.tokens) {
+          for (const [tokenType, tokenValues] of Object.entries(value.tokens)) {
+            if (!consolidated[tokenType]) {
+              consolidated[tokenType] = {};
+            }
+            Object.assign(consolidated[tokenType], tokenValues);
+          }
+        }
+      }
+      tokens = consolidated;
+    }
+  }
+
   // First, try to find screens to render (highest priority)
   const screens = dcfDocument.screens || dcfDocument.screen;
   if (screens && typeof screens === 'object') {
