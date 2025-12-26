@@ -333,9 +333,13 @@ const PreviewApp: React.FC = () => {
                   {tokenEntries.map(([name, tokenData]: [string, any]) => {
                     // Render the actual tokens from the tokenData.tokens property
                     if (tokenData.tokens && typeof tokenData.tokens === 'object') {
-                      return Object.entries(tokenData.tokens).map(([tokenName, tokenValue]: [string, any]) => (
-                        <TokenPreview key={`${name}-${tokenName}`} name={`${name}: ${tokenName}`} token={tokenValue} />
-                      ));
+                      return (
+                        <React.Fragment key={name}>
+                          {Object.entries(tokenData.tokens).map(([tokenName, tokenValue]: [string, any]) => (
+                            <TokenPreview key={`${name}-${tokenName}`} name={`${name}: ${tokenName}`} token={tokenValue} />
+                          ))}
+                        </React.Fragment>
+                      );
                     }
                     return null;
                   })}
@@ -348,9 +352,13 @@ const PreviewApp: React.FC = () => {
                   {componentEntries.map(([name, componentData]: [string, any]) => {
                     // Render the actual components from the componentData.components property
                     if (componentData.components && typeof componentData.components === 'object') {
-                      return Object.entries(componentData.components).map(([componentName, componentValue]: [string, any]) => (
-                        <ComponentPreview key={`${name}-${componentName}`} name={`${name}: ${componentName}`} component={componentValue} />
-                      ));
+                      return (
+                        <React.Fragment key={name}>
+                          {Object.entries(componentData.components).map(([componentName, componentValue]: [string, any]) => (
+                            <ComponentPreview key={`${name}-${componentName}`} name={`${name}: ${componentName}`} component={componentValue} />
+                          ))}
+                        </React.Fragment>
+                      );
                     }
                     return null;
                   })}
@@ -363,9 +371,13 @@ const PreviewApp: React.FC = () => {
                   {layoutEntries.map(([name, layoutData]: [string, any]) => {
                     // Render the actual layouts from the layoutData.layouts property
                     if (layoutData.layouts && typeof layoutData.layouts === 'object') {
-                      return Object.entries(layoutData.layouts).map(([layoutName, layoutValue]: [string, any]) => (
-                        <LayoutPreview key={`${name}-${layoutName}`} name={`${name}: ${layoutName}`} layout={layoutValue} />
-                      ));
+                      return (
+                        <React.Fragment key={name}>
+                          {Object.entries(layoutData.layouts).map(([layoutName, layoutValue]: [string, any]) => (
+                            <LayoutPreview key={`${name}-${layoutName}`} name={`${name}: ${layoutName}`} layout={layoutValue} />
+                          ))}
+                        </React.Fragment>
+                      );
                     }
                     return null;
                   })}
@@ -381,8 +393,7 @@ const PreviewApp: React.FC = () => {
                 <p>No visual representation available.</p>
               </div>
             )}
-          </div>
-        )}
+        </div>
       </div>
     </div>
   );
