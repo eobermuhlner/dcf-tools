@@ -117,17 +117,73 @@ const PreviewApp: React.FC = () => {
     );
   }
 
-  // Get available DCF kinds from the document
+  // Get available DCF kinds from the document by checking top-level properties
   const availableKinds = [];
-  if (dcfData.document.tokens && Object.keys(dcfData.document.tokens).length > 0) availableKinds.push('tokens');
-  if (dcfData.document.components && Object.keys(dcfData.document.components).length > 0) availableKinds.push('components');
-  if (dcfData.document.layouts && Object.keys(dcfData.document.layouts).length > 0) availableKinds.push('layouts');
-  if (dcfData.document.screens && Object.keys(dcfData.document.screens).length > 0) availableKinds.push('screens');
-  if (dcfData.document.navigation && Object.keys(dcfData.document.navigation).length > 0) availableKinds.push('navigation');
-  if (dcfData.document.flows && Object.keys(dcfData.document.flows).length > 0) availableKinds.push('flows');
-  if (dcfData.document.themes && Object.keys(dcfData.document.themes).length > 0) availableKinds.push('themes');
-  if (dcfData.document.i18n && Object.keys(dcfData.document.i18n).length > 0) availableKinds.push('i18n');
-  if (dcfData.document.rules && Object.keys(dcfData.document.rules).length > 0) availableKinds.push('rules');
+  const tokenEntries = [];
+  const componentEntries = [];
+  const layoutEntries = [];
+  const screenEntries = [];
+  const navigationEntries = [];
+  const flowEntries = [];
+  const themeEntries = [];
+  const i18nEntries = [];
+  const ruleEntries = [];
+
+  // Check for each kind and collect entries
+  if (dcfData.document.tokens && typeof dcfData.document.tokens === 'object') {
+    availableKinds.push('tokens');
+    Object.entries(dcfData.document.tokens).forEach(([key, value]) => {
+      tokenEntries.push([key, value]);
+    });
+  }
+  if (dcfData.document.components && typeof dcfData.document.components === 'object') {
+    availableKinds.push('components');
+    Object.entries(dcfData.document.components).forEach(([key, value]) => {
+      componentEntries.push([key, value]);
+    });
+  }
+  if (dcfData.document.layouts && typeof dcfData.document.layouts === 'object') {
+    availableKinds.push('layouts');
+    Object.entries(dcfData.document.layouts).forEach(([key, value]) => {
+      layoutEntries.push([key, value]);
+    });
+  }
+  if (dcfData.document.screens && typeof dcfData.document.screens === 'object') {
+    availableKinds.push('screens');
+    Object.entries(dcfData.document.screens).forEach(([key, value]) => {
+      screenEntries.push([key, value]);
+    });
+  }
+  if (dcfData.document.navigation && typeof dcfData.document.navigation === 'object') {
+    availableKinds.push('navigation');
+    Object.entries(dcfData.document.navigation).forEach(([key, value]) => {
+      navigationEntries.push([key, value]);
+    });
+  }
+  if (dcfData.document.flows && typeof dcfData.document.flows === 'object') {
+    availableKinds.push('flows');
+    Object.entries(dcfData.document.flows).forEach(([key, value]) => {
+      flowEntries.push([key, value]);
+    });
+  }
+  if (dcfData.document.themes && typeof dcfData.document.themes === 'object') {
+    availableKinds.push('themes');
+    Object.entries(dcfData.document.themes).forEach(([key, value]) => {
+      themeEntries.push([key, value]);
+    });
+  }
+  if (dcfData.document.i18n && typeof dcfData.document.i18n === 'object') {
+    availableKinds.push('i18n');
+    Object.entries(dcfData.document.i18n).forEach(([key, value]) => {
+      i18nEntries.push([key, value]);
+    });
+  }
+  if (dcfData.document.rules && typeof dcfData.document.rules === 'object') {
+    availableKinds.push('rules');
+    Object.entries(dcfData.document.rules).forEach(([key, value]) => {
+      ruleEntries.push([key, value]);
+    });
+  }
 
   // Convert DCF document to render tree for visual representation
   // Apply filtering based on selected kind for visual view as well
@@ -140,16 +196,81 @@ const PreviewApp: React.FC = () => {
     if (dcfData.document.profile) filteredDocument.profile = dcfData.document.profile;
     if (dcfData.document.renderer) filteredDocument.renderer = dcfData.document.renderer;
 
-    // Add only the selected kind
-    if (selectedKind === 'tokens' && dcfData.document.tokens && Object.keys(dcfData.document.tokens).length > 0) filteredDocument.tokens = dcfData.document.tokens;
-    if (selectedKind === 'components' && dcfData.document.components && Object.keys(dcfData.document.components).length > 0) filteredDocument.components = dcfData.document.components;
-    if (selectedKind === 'layouts' && dcfData.document.layouts && Object.keys(dcfData.document.layouts).length > 0) filteredDocument.layouts = dcfData.document.layouts;
-    if (selectedKind === 'screens' && dcfData.document.screens && Object.keys(dcfData.document.screens).length > 0) filteredDocument.screens = dcfData.document.screens;
-    if (selectedKind === 'navigation' && dcfData.document.navigation && Object.keys(dcfData.document.navigation).length > 0) filteredDocument.navigation = dcfData.document.navigation;
-    if (selectedKind === 'flows' && dcfData.document.flows && Object.keys(dcfData.document.flows).length > 0) filteredDocument.flows = dcfData.document.flows;
-    if (selectedKind === 'themes' && dcfData.document.themes && Object.keys(dcfData.document.themes).length > 0) filteredDocument.themes = dcfData.document.themes;
-    if (selectedKind === 'i18n' && dcfData.document.i18n && Object.keys(dcfData.document.i18n).length > 0) filteredDocument.i18n = dcfData.document.i18n;
-    if (selectedKind === 'rules' && dcfData.document.rules && Object.keys(dcfData.document.rules).length > 0) filteredDocument.rules = dcfData.document.rules;
+    // Add only the entries of the selected kind
+    switch (selectedKind) {
+      case 'tokens':
+        if (tokenEntries.length > 0) {
+          filteredDocument.tokens = {};
+          tokenEntries.forEach(([key, value]) => {
+            filteredDocument.tokens[key] = value;
+          });
+        }
+        break;
+      case 'components':
+        if (componentEntries.length > 0) {
+          filteredDocument.components = {};
+          componentEntries.forEach(([key, value]) => {
+            filteredDocument.components[key] = value;
+          });
+        }
+        break;
+      case 'layouts':
+        if (layoutEntries.length > 0) {
+          filteredDocument.layouts = {};
+          layoutEntries.forEach(([key, value]) => {
+            filteredDocument.layouts[key] = value;
+          });
+        }
+        break;
+      case 'screens':
+        if (screenEntries.length > 0) {
+          filteredDocument.screens = {};
+          screenEntries.forEach(([key, value]) => {
+            filteredDocument.screens[key] = value;
+          });
+        }
+        break;
+      case 'navigation':
+        if (navigationEntries.length > 0) {
+          filteredDocument.navigation = {};
+          navigationEntries.forEach(([key, value]) => {
+            filteredDocument.navigation[key] = value;
+          });
+        }
+        break;
+      case 'flows':
+        if (flowEntries.length > 0) {
+          filteredDocument.flows = {};
+          flowEntries.forEach(([key, value]) => {
+            filteredDocument.flows[key] = value;
+          });
+        }
+        break;
+      case 'themes':
+        if (themeEntries.length > 0) {
+          filteredDocument.themes = {};
+          themeEntries.forEach(([key, value]) => {
+            filteredDocument.themes[key] = value;
+          });
+        }
+        break;
+      case 'i18n':
+        if (i18nEntries.length > 0) {
+          filteredDocument.i18n = {};
+          i18nEntries.forEach(([key, value]) => {
+            filteredDocument.i18n[key] = value;
+          });
+        }
+        break;
+      case 'rules':
+        if (ruleEntries.length > 0) {
+          filteredDocument.rules = {};
+          ruleEntries.forEach(([key, value]) => {
+            filteredDocument.rules[key] = value;
+          });
+        }
+        break;
+    }
   }
 
   let renderTree = null;
@@ -222,44 +343,62 @@ const PreviewApp: React.FC = () => {
             ) : (
               // Show token preview when in visual mode but no render tree exists (e.g., for tokens)
               <>
-                {(!selectedKind || selectedKind === 'tokens') && dcfData.document.tokens && Object.keys(dcfData.document.tokens).length > 0 && (
+                {(!selectedKind || selectedKind === 'tokens') && tokenEntries.length > 0 && (
                   <>
                     <h3>Tokens Preview</h3>
                     <div className="tokens-preview">
-                      {Object.entries(dcfData.document.tokens).map(([name, token]: [string, any]) => (
-                        <TokenPreview key={name} name={name} token={token} />
-                      ))}
+                      {tokenEntries.map(([name, tokenData]: [string, any]) => {
+                        // Render the actual tokens from the tokenData.tokens property
+                        if (tokenData.tokens && typeof tokenData.tokens === 'object') {
+                          return Object.entries(tokenData.tokens).map(([tokenName, tokenValue]: [string, any]) => (
+                            <TokenPreview key={`${name}-${tokenName}`} name={`${name}: ${tokenName}`} token={tokenValue} />
+                          ));
+                        }
+                        return null;
+                      })}
                     </div>
                   </>
                 )}
 
-                {(!selectedKind || selectedKind === 'components') && dcfData.document.components && Object.keys(dcfData.document.components).length > 0 && (
+                {(!selectedKind || selectedKind === 'components') && componentEntries.length > 0 && (
                   <>
                     <h3>Components Preview</h3>
                     <div className="components-preview">
-                      {Object.entries(dcfData.document.components).map(([name, component]: [string, any]) => (
-                        <ComponentPreview key={name} name={name} component={component} />
-                      ))}
+                      {componentEntries.map(([name, componentData]: [string, any]) => {
+                        // Render the actual components from the componentData.components property
+                        if (componentData.components && typeof componentData.components === 'object') {
+                          return Object.entries(componentData.components).map(([componentName, componentValue]: [string, any]) => (
+                            <ComponentPreview key={`${name}-${componentName}`} name={`${name}: ${componentName}`} component={componentValue} />
+                          ));
+                        }
+                        return null;
+                      })}
                     </div>
                   </>
                 )}
 
-                {(!selectedKind || selectedKind === 'layouts') && dcfData.document.layouts && Object.keys(dcfData.document.layouts).length > 0 && (
+                {(!selectedKind || selectedKind === 'layouts') && layoutEntries.length > 0 && (
                   <>
                     <h3>Layouts Preview</h3>
                     <div className="layouts-preview">
-                      {Object.entries(dcfData.document.layouts).map(([name, layout]: [string, any]) => (
-                        <LayoutPreview key={name} name={name} layout={layout} />
-                      ))}
+                      {layoutEntries.map(([name, layoutData]: [string, any]) => {
+                        // Render the actual layouts from the layoutData.layouts property
+                        if (layoutData.layouts && typeof layoutData.layouts === 'object') {
+                          return Object.entries(layoutData.layouts).map(([layoutName, layoutValue]: [string, any]) => (
+                            <LayoutPreview key={`${name}-${layoutName}`} name={`${name}: ${layoutName}`} layout={layoutValue} />
+                          ));
+                        }
+                        return null;
+                      })}
                     </div>
                   </>
                 )}
 
                 {/* Show message if no content is available for the selected kind */}
                 {selectedKind &&
-                 !((selectedKind === 'tokens' && dcfData.document.tokens && Object.keys(dcfData.document.tokens).length > 0) ||
-                   (selectedKind === 'components' && dcfData.document.components && Object.keys(dcfData.document.components).length > 0) ||
-                   (selectedKind === 'layouts' && dcfData.document.layouts && Object.keys(dcfData.document.layouts).length > 0)) && (
+                 !((selectedKind === 'tokens' && tokenEntries.length > 0) ||
+                   (selectedKind === 'components' && componentEntries.length > 0) ||
+                   (selectedKind === 'layouts' && layoutEntries.length > 0)) && (
                   <div className="no-content">
                     <p>No content available for {selectedKind}</p>
                   </div>
@@ -276,35 +415,53 @@ const PreviewApp: React.FC = () => {
         ) : (
           <>
             {/* Show all DCF kinds based on selection */}
-            {(!selectedKind || selectedKind === 'tokens') && dcfData.document.tokens && Object.keys(dcfData.document.tokens).length > 0 && (
+            {(!selectedKind || selectedKind === 'tokens') && tokenEntries.length > 0 && (
               <>
                 <h2>Tokens</h2>
                 <div className="tokens-preview">
-                  {Object.entries(dcfData.document.tokens).map(([name, token]: [string, any]) => (
-                    <TokenPreview key={name} name={name} token={token} />
-                  ))}
+                  {tokenEntries.map(([name, tokenData]: [string, any]) => {
+                    // Render the actual tokens from the tokenData.tokens property
+                    if (tokenData.tokens && typeof tokenData.tokens === 'object') {
+                      return Object.entries(tokenData.tokens).map(([tokenName, tokenValue]: [string, any]) => (
+                        <TokenPreview key={`${name}-${tokenName}`} name={`${name}: ${tokenName}`} token={tokenValue} />
+                      ));
+                    }
+                    return null;
+                  })}
                 </div>
               </>
             )}
 
-            {(!selectedKind || selectedKind === 'components') && dcfData.document.components && Object.keys(dcfData.document.components).length > 0 && (
+            {(!selectedKind || selectedKind === 'components') && componentEntries.length > 0 && (
               <>
                 <h2>Components</h2>
                 <div className="components-preview">
-                  {Object.entries(dcfData.document.components).map(([name, component]: [string, any]) => (
-                    <ComponentPreview key={name} name={name} component={component} />
-                  ))}
+                  {componentEntries.map(([name, componentData]: [string, any]) => {
+                    // Render the actual components from the componentData.components property
+                    if (componentData.components && typeof componentData.components === 'object') {
+                      return Object.entries(componentData.components).map(([componentName, componentValue]: [string, any]) => (
+                        <ComponentPreview key={`${name}-${componentName}`} name={`${name}: ${componentName}`} component={componentValue} />
+                      ));
+                    }
+                    return null;
+                  })}
                 </div>
               </>
             )}
 
-            {(!selectedKind || selectedKind === 'layouts') && dcfData.document.layouts && Object.keys(dcfData.document.layouts).length > 0 && (
+            {(!selectedKind || selectedKind === 'layouts') && layoutEntries.length > 0 && (
               <>
                 <h2>Layouts</h2>
                 <div className="layouts-preview">
-                  {Object.entries(dcfData.document.layouts).map(([name, layout]: [string, any]) => (
-                    <LayoutPreview key={name} name={name} layout={layout} />
-                  ))}
+                  {layoutEntries.map(([name, layoutData]: [string, any]) => {
+                    // Render the actual layouts from the layoutData.layouts property
+                    if (layoutData.layouts && typeof layoutData.layouts === 'object') {
+                      return Object.entries(layoutData.layouts).map(([layoutName, layoutValue]: [string, any]) => (
+                        <LayoutPreview key={`${name}-${layoutName}`} name={`${name}: ${layoutName}`} layout={layoutValue} />
+                      ));
+                    }
+                    return null;
+                  })}
                 </div>
               </>
             )}
