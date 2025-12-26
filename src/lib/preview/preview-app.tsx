@@ -336,80 +336,61 @@ const PreviewApp: React.FC = () => {
             <h2>
               Visual Preview {selectedKind ? `- ${selectedKind.charAt(0).toUpperCase() + selectedKind.slice(1)}` : ''}
             </h2>
-            {renderTree ? (
+            {/* Show token preview when tokens are selected, regardless of renderTree */}
+            {selectedKind === 'tokens' && tokenEntries.length > 0 ? (
+              <>
+                <h3>Tokens Preview</h3>
+                <div className="tokens-preview">
+                  {tokenEntries.map(([name, tokenData]: [string, any]) => {
+                    // Render the actual tokens from the tokenData.tokens property
+                    if (tokenData.tokens && typeof tokenData.tokens === 'object') {
+                      return Object.entries(tokenData.tokens).map(([tokenName, tokenValue]: [string, any]) => (
+                        <TokenPreview key={`${name}-${tokenName}`} name={`${name}: ${tokenName}`} token={tokenValue} />
+                      ));
+                    }
+                    return null;
+                  })}
+                </div>
+              </>
+            ) : selectedKind === 'components' && componentEntries.length > 0 ? (
+              <>
+                <h3>Components Preview</h3>
+                <div className="components-preview">
+                  {componentEntries.map(([name, componentData]: [string, any]) => {
+                    // Render the actual components from the componentData.components property
+                    if (componentData.components && typeof componentData.components === 'object') {
+                      return Object.entries(componentData.components).map(([componentName, componentValue]: [string, any]) => (
+                        <ComponentPreview key={`${name}-${componentName}`} name={`${name}: ${componentName}`} component={componentValue} />
+                      ));
+                    }
+                    return null;
+                  })}
+                </div>
+              </>
+            ) : selectedKind === 'layouts' && layoutEntries.length > 0 ? (
+              <>
+                <h3>Layouts Preview</h3>
+                <div className="layouts-preview">
+                  {layoutEntries.map(([name, layoutData]: [string, any]) => {
+                    // Render the actual layouts from the layoutData.layouts property
+                    if (layoutData.layouts && typeof layoutData.layouts === 'object') {
+                      return Object.entries(layoutData.layouts).map(([layoutName, layoutValue]: [string, any]) => (
+                        <LayoutPreview key={`${name}-${layoutName}`} name={`${name}: ${layoutName}`} layout={layoutValue} />
+                      ));
+                    }
+                    return null;
+                  })}
+                </div>
+              </>
+            ) : renderTree && Object.keys(renderTree).length > 0 ? (
               <div className="visual-container">
                 <RenderNodeView node={renderTree} />
               </div>
             ) : (
-              // Show token preview when in visual mode but no render tree exists (e.g., for tokens)
-              <>
-                {(!selectedKind || selectedKind === 'tokens') && tokenEntries.length > 0 && (
-                  <>
-                    <h3>Tokens Preview</h3>
-                    <div className="tokens-preview">
-                      {tokenEntries.map(([name, tokenData]: [string, any]) => {
-                        // Render the actual tokens from the tokenData.tokens property
-                        if (tokenData.tokens && typeof tokenData.tokens === 'object') {
-                          return Object.entries(tokenData.tokens).map(([tokenName, tokenValue]: [string, any]) => (
-                            <TokenPreview key={`${name}-${tokenName}`} name={`${name}: ${tokenName}`} token={tokenValue} />
-                          ));
-                        }
-                        return null;
-                      })}
-                    </div>
-                  </>
-                )}
-
-                {(!selectedKind || selectedKind === 'components') && componentEntries.length > 0 && (
-                  <>
-                    <h3>Components Preview</h3>
-                    <div className="components-preview">
-                      {componentEntries.map(([name, componentData]: [string, any]) => {
-                        // Render the actual components from the componentData.components property
-                        if (componentData.components && typeof componentData.components === 'object') {
-                          return Object.entries(componentData.components).map(([componentName, componentValue]: [string, any]) => (
-                            <ComponentPreview key={`${name}-${componentName}`} name={`${name}: ${componentName}`} component={componentValue} />
-                          ));
-                        }
-                        return null;
-                      })}
-                    </div>
-                  </>
-                )}
-
-                {(!selectedKind || selectedKind === 'layouts') && layoutEntries.length > 0 && (
-                  <>
-                    <h3>Layouts Preview</h3>
-                    <div className="layouts-preview">
-                      {layoutEntries.map(([name, layoutData]: [string, any]) => {
-                        // Render the actual layouts from the layoutData.layouts property
-                        if (layoutData.layouts && typeof layoutData.layouts === 'object') {
-                          return Object.entries(layoutData.layouts).map(([layoutName, layoutValue]: [string, any]) => (
-                            <LayoutPreview key={`${name}-${layoutName}`} name={`${name}: ${layoutName}`} layout={layoutValue} />
-                          ));
-                        }
-                        return null;
-                      })}
-                    </div>
-                  </>
-                )}
-
-                {/* Show message if no content is available for the selected kind */}
-                {selectedKind &&
-                 !((selectedKind === 'tokens' && tokenEntries.length > 0) ||
-                   (selectedKind === 'components' && componentEntries.length > 0) ||
-                   (selectedKind === 'layouts' && layoutEntries.length > 0)) && (
-                  <div className="no-content">
-                    <p>No content available for {selectedKind}</p>
-                  </div>
-                )}
-
-                {!selectedKind && (
-                  <div className="no-content">
-                    <p>No visual representation available. Switch to JSON view to see all content.</p>
-                  </div>
-                )}
-              </>
+              // Fallback when no specific kind is selected but there's no render tree
+              <div className="no-content">
+                <p>No visual representation available. Switch to JSON view to see all content.</p>
+              </div>
             )}
           </div>
         ) : (
