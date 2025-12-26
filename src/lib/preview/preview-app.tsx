@@ -389,64 +389,6 @@ const LayoutPreview: React.FC<{ name: string; layout: any }> = ({ name, layout }
   );
 };
 
-// Component to render individual tokens
-const TokenPreview: React.FC<{ name: string; token: any }> = ({ name, token }) => {
-  if (typeof token === 'object' && token !== null && !Array.isArray(token)) {
-    return (
-      <div className="token-card">
-        <h3>{name}</h3>
-        <div className="token-children">
-          {Object.entries(token).map(([subName, subToken]) => (
-            <TokenPreview key={subName} name={`${name}.${subName}`} token={subToken} />
-          ))}
-        </div>
-      </div>
-    );
-  } else {
-    // For primitive tokens, show them with visual indicators where appropriate
-    const isColor = typeof token === 'string' && (token.startsWith('#') || token.startsWith('rgb') || token.startsWith('hsl'));
-
-    return (
-      <div className="token-card">
-        <h4>{name}: <span className="token-value">{token}</span></h4>
-        {isColor && (
-          <div className="color-preview" style={{ backgroundColor: token, width: '50px', height: '20px', border: '1px solid #ccc' }}></div>
-        )}
-      </div>
-    );
-  }
-};
-
-// Component to render individual components
-const ComponentPreview: React.FC<{ name: string; component: any }> = ({ name, component }) => {
-  return (
-    <div className="component-card">
-      <h3>{name}</h3>
-      <div className="component-properties">
-        <details>
-          <summary>Properties</summary>
-          <pre>{JSON.stringify(component, null, 2)}</pre>
-        </details>
-      </div>
-    </div>
-  );
-};
-
-// Component to render individual layouts
-const LayoutPreview: React.FC<{ name: string; layout: any }> = ({ name, layout }) => {
-  return (
-    <div className="layout-card">
-      <h3>{name}</h3>
-      <div className="layout-properties">
-        <details>
-          <summary>Properties</summary>
-          <pre>{JSON.stringify(layout, null, 2)}</pre>
-        </details>
-      </div>
-    </div>
-  );
-};
-
 // Component to render individual screens
 const ScreenPreview: React.FC<{ name: string; screen: any }> = ({ name, screen }) => {
   return (
