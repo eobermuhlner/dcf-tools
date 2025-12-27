@@ -1,0 +1,14 @@
+{
+  "dcf_version": "1.0.0",
+  "kind": "component",
+  "profile": "standard",
+  "name": "Footer",
+  "props": {
+    "copyright": { "type": "string" }
+  },
+  "layout": {
+    "backgroundColor": "{color.text-primary}",
+    "color": "{color.text-inverse}",
+    "padding": "{space.xxl} {space.xl}"
+  }
+}

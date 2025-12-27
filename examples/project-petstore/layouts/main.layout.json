@@ -1,0 +1,21 @@
+{
+  "dcf_version": "1.0.0",
+  "kind": "layout",
+  "profile": "standard",
+  "name": "MainLayout",
+  "regions": {
+    "header": {
+      "role": "persistent",
+      "component": "Header",
+      "position": "block-start"
+    },
+    "main": {
+      "role": "dynamic"
+    },
+    "footer": {
+      "role": "persistent",
+      "component": "Footer",
+      "position": "block-end"
+    }
+  }
+}

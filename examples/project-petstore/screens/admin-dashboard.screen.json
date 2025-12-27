@@ -1,0 +1,56 @@
+{
+  "dcf_version": "1.0.0",
+  "kind": "screen",
+  "profile": "standard",
+  "name": "AdminDashboardScreen",
+  "intent": "dashboard",
+  "layout": "AdminLayout",
+  "title": "$strings.admin.dashboard",
+  "auth": {
+    "required": true,
+    "roles": ["admin"]
+  },
+  "data": {
+    "stats": {
+      "source": "api",
+      "endpoint": "/admin/stats",
+      "method": "GET"
+    },
+    "recentOrders": {
+      "source": "api",
+      "endpoint": "/admin/orders/recent",
+      "method": "GET"
+    },
+    "lowStockPets": {
+      "source": "api",
+      "endpoint": "/admin/pets/low-stock",
+      "method": "GET"
+    }
+  },
+  "content": [
+    {
+      "component": "PageHeader",
+      "props": {
+        "title": "$strings.admin.dashboard"
+      }
+    },
+    {
+      "component": "StatsGrid",
+      "props": {
+        "stats": "$data.stats"
+      }
+    },
+    {
+      "component": "RecentOrdersTable",
+      "props": {
+        "orders": "$data.recentOrders"
+      }
+    },
+    {
+      "component": "LowStockAlerts",
+      "props": {
+        "pets": "$data.lowStockPets"
+      }
+    }
+  ]
+}

@@ -1,0 +1,90 @@
+{
+  "dcf_version": "1.0.0",
+  "kind": "rules",
+  "name": "PetStoreRules",
+  "rules": {
+    "spacing": {
+      "description": "Consistent spacing throughout the application",
+      "constraints": [
+        { "rule": "use-token", "property": "margin", "allowedTokens": ["space.*"] },
+        { "rule": "use-token", "property": "padding", "allowedTokens": ["space.*"] },
+        { "rule": "use-token", "property": "gap", "allowedTokens": ["space.*"] }
+      ]
+    },
+    "typography": {
+      "description": "Typography consistency rules",
+      "constraints": [
+        { "rule": "use-token", "property": "fontSize", "allowedTokens": ["font.size-*"] },
+        { "rule": "use-token", "property": "fontWeight", "allowedTokens": ["font.weight-*"] },
+        { "rule": "use-token", "property": "lineHeight", "allowedTokens": ["font.line-height-*"] },
+        { "rule": "font-family", "allowedFamilies": ["Inter", "system-ui", "sans-serif"] }
+      ]
+    },
+    "colors": {
+      "description": "Color usage rules for accessibility and consistency",
+      "constraints": [
+        { "rule": "use-token", "property": "color", "allowedTokens": ["color.*"] },
+        { "rule": "use-token", "property": "backgroundColor", "allowedTokens": ["color.*"] },
+        { "rule": "use-token", "property": "borderColor", "allowedTokens": ["color.*"] },
+        { "rule": "contrast-ratio", "minimum": 4.5, "contexts": ["text", "interactive"] },
+        { "rule": "contrast-ratio", "minimum": 3, "contexts": ["large-text", "decorative"] }
+      ]
+    },
+    "layout": {
+      "description": "Layout consistency rules",
+      "constraints": [
+        { "rule": "use-token", "property": "borderRadius", "allowedTokens": ["radius.*"] },
+        { "rule": "max-width", "property": "maxWidth", "maximum": "1400px", "contexts": ["content-container"] },
+        { "rule": "responsive", "breakpoints": ["sm", "md", "lg", "xl"] }
+      ]
+    },
+    "accessibility": {
+      "description": "Accessibility requirements",
+      "constraints": [
+        { "rule": "required-attribute", "element": "image", "attribute": "alt" },
+        { "rule": "required-attribute", "element": "button", "attribute": "label" },
+        { "rule": "required-attribute", "element": "input", "attribute": "label" },
+        { "rule": "focus-visible", "required": true },
+        { "rule": "touch-target", "minimum": "44px" }
+      ]
+    },
+    "forms": {
+      "description": "Form design rules",
+      "constraints": [
+        { "rule": "required-indicator", "required": true },
+        { "rule": "error-message", "placement": "below-field" },
+        { "rule": "label-position", "position": "above" }
+      ]
+    },
+    "buttons": {
+      "description": "Button design rules",
+      "constraints": [
+        { "rule": "variants", "allowed": ["primary", "secondary", "ghost", "danger"] },
+        { "rule": "sizes", "allowed": ["small", "medium", "large"] },
+        { "rule": "icon-position", "allowed": ["left", "right"] }
+      ]
+    },
+    "components": {
+      "description": "Component usage rules",
+      "constraints": [
+        { "rule": "naming", "pattern": "^[A-Z][a-zA-Z]+$", "message": "Component names must be PascalCase" },
+        { "rule": "props-required", "component": "PetCard", "props": ["pet"] },
+        { "rule": "props-required", "component": "CartItem", "props": ["item"] }
+      ]
+    },
+    "navigation": {
+      "description": "Navigation design rules",
+      "constraints": [
+        { "rule": "max-depth", "maximum": 3 },
+        { "rule": "breadcrumbs", "required": true, "minDepth": 2 }
+      ]
+    },
+    "performance": {
+      "description": "Performance guidelines",
+      "constraints": [
+        { "rule": "lazy-load", "elements": ["image"], "threshold": "below-fold" },
+        { "rule": "pagination", "maximum": 24, "contexts": ["list", "grid"] }
+      ]
+    }
+  }
+}

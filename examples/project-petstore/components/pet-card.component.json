@@ -1,0 +1,21 @@
+{
+  "dcf_version": "1.0.0",
+  "kind": "component",
+  "profile": "standard",
+  "name": "PetCard",
+  "props": {
+    "pet": { "type": "object" },
+    "variant": { "type": "string" },
+    "showActions": { "type": "boolean" }
+  },
+  "variants": {
+    "variant": ["default", "compact", "featured"]
+  },
+  "layout": {
+    "backgroundColor": "{color.surface-elevated}",
+    "borderRadius": "{radius.lg}",
+    "boxShadow": "{shadow.md}",
+    "overflow": "hidden",
+    "cursor": "pointer"
+  }
+}

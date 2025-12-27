@@ -1,0 +1,21 @@
+{
+  "dcf_version": "1.0.0",
+  "kind": "layout",
+  "profile": "standard",
+  "name": "AdminLayout",
+  "regions": {
+    "header": {
+      "role": "persistent",
+      "component": "AdminHeader",
+      "position": "block-start"
+    },
+    "sidebar": {
+      "role": "persistent",
+      "component": "AdminSidebar",
+      "position": "inline-start"
+    },
+    "main": {
+      "role": "dynamic"
+    }
+  }
+}

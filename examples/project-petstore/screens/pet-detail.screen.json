@@ -1,0 +1,61 @@
+{
+  "dcf_version": "1.0.0",
+  "kind": "screen",
+  "profile": "standard",
+  "name": "PetDetailScreen",
+  "intent": "view",
+  "layout": "MainLayout",
+  "title": "$data.pet.name",
+  "params": {
+    "petId": { "type": "string" }
+  },
+  "data": {
+    "pet": {
+      "source": "api",
+      "endpoint": "/pets/$params.petId",
+      "method": "GET"
+    },
+    "relatedPets": {
+      "source": "api",
+      "endpoint": "/pets/related/$params.petId",
+      "method": "GET"
+    }
+  },
+  "content": [
+    {
+      "component": "BackButton",
+      "props": {
+        "to": "/pets",
+        "label": "$strings.common.back"
+      }
+    },
+    {
+      "component": "PetGallery",
+      "props": {
+        "images": "$data.pet.photoUrls",
+        "name": "$data.pet.name"
+      }
+    },
+    {
+      "component": "PetInfo",
+      "props": {
+        "pet": "$data.pet"
+      }
+    },
+    {
+      "component": "PetActions",
+      "props": {
+        "petId": "$data.pet.id",
+        "status": "$data.pet.status",
+        "price": "$data.pet.price"
+      }
+    },
+    {
+      "component": "RelatedPets",
+      "props": {
+        "title": "Related Pets",
+        "pets": "$data.relatedPets"
+      }
+    }
+  ]
+}

@@ -1,0 +1,46 @@
+{
+  "dcf_version": "1.0.0",
+  "kind": "screen",
+  "profile": "standard",
+  "name": "CheckoutScreen",
+  "intent": "create",
+  "layout": "MainLayout",
+  "title": "$strings.checkout.title",
+  "auth": {
+    "required": true
+  },
+  "data": {
+    "cart": {
+      "source": "context",
+      "key": "cart"
+    }
+  },
+  "content": [
+    {
+      "component": "PageHeader",
+      "props": {
+        "title": "$strings.checkout.title"
+      }
+    },
+    {
+      "component": "CheckoutStepper",
+      "props": {
+        "steps": ["Shipping", "Payment", "Review"]
+      }
+    },
+    {
+      "component": "ShippingForm",
+      "props": {}
+    },
+    {
+      "component": "PaymentForm",
+      "props": {}
+    },
+    {
+      "component": "OrderReview",
+      "props": {
+        "cart": "$data.cart"
+      }
+    }
+  ]
+}

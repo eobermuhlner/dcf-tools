@@ -1,0 +1,43 @@
+{
+  "dcf_version": "1.0.0",
+  "kind": "flow",
+  "profile": "standard",
+  "name": "PurchaseFlow",
+  "start": "PetListScreen",
+  "steps": [
+    {
+      "screen": "PetListScreen",
+      "on_submit": {
+        "success": "PetDetailScreen",
+        "error": "PetListScreen"
+      }
+    },
+    {
+      "screen": "PetDetailScreen",
+      "on_submit": {
+        "success": "CartScreen",
+        "error": "PetDetailScreen"
+      },
+      "on_cancel": "PetListScreen"
+    },
+    {
+      "screen": "CartScreen",
+      "on_submit": {
+        "success": "CheckoutScreen",
+        "error": "CartScreen"
+      },
+      "on_cancel": "PetListScreen"
+    },
+    {
+      "screen": "CheckoutScreen",
+      "on_submit": {
+        "success": "OrderConfirmationScreen",
+        "error": "CheckoutScreen"
+      },
+      "on_cancel": "CartScreen"
+    },
+    {
+      "screen": "OrderConfirmationScreen"
+    }
+  ]
+}

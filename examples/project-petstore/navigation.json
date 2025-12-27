@@ -1,0 +1,40 @@
+{
+  "dcf_version": "1.0.0",
+  "kind": "navigation",
+  "profile": "standard",
+  "name": "PetStoreNavigation",
+  "routes": {
+    "/": {
+      "path": "/",
+      "screen": "HomeScreen"
+    },
+    "/pets": {
+      "path": "/pets",
+      "screen": "PetListScreen"
+    },
+    "/pets/:petId": {
+      "path": "/pets/:petId",
+      "screen": "PetDetailScreen"
+    },
+    "/cart": {
+      "path": "/cart",
+      "screen": "CartScreen"
+    },
+    "/checkout": {
+      "path": "/checkout",
+      "screen": "CheckoutScreen"
+    },
+    "/admin": {
+      "path": "/admin",
+      "screen": "AdminDashboardScreen"
+    },
+    "/admin/orders": {
+      "path": "/admin/orders",
+      "screen": "AdminOrdersScreen"
+    },
+    "/admin/pets": {
+      "path": "/admin/pets",
+      "screen": "AdminPetsScreen"
+    }
+  }
+}

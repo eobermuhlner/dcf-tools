@@ -1,0 +1,20 @@
+{
+  "dcf_version": "1.0.0",
+  "kind": "component",
+  "profile": "standard",
+  "name": "CategoryCard",
+  "props": {
+    "category": { "type": "object" }
+  },
+  "layout": {
+    "display": "flex",
+    "flexDirection": "column",
+    "alignItems": "center",
+    "justifyContent": "center",
+    "padding": "{space.xl}",
+    "backgroundColor": "{color.surface-elevated}",
+    "borderRadius": "{radius.xl}",
+    "boxShadow": "{shadow.sm}",
+    "cursor": "pointer"
+  }
+}

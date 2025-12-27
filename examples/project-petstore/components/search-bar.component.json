@@ -1,0 +1,19 @@
+{
+  "dcf_version": "1.0.0",
+  "kind": "component",
+  "profile": "standard",
+  "name": "SearchBar",
+  "props": {
+    "placeholder": { "type": "string" },
+    "value": { "type": "string" },
+    "showFilters": { "type": "boolean" }
+  },
+  "layout": {
+    "display": "flex",
+    "gap": "{space.md}",
+    "padding": "{space.md}",
+    "backgroundColor": "{color.surface}",
+    "borderRadius": "{radius.lg}",
+    "border": "1px solid {color.border}"
+  }
+}

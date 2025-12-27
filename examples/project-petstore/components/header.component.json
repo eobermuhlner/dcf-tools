@@ -1,0 +1,18 @@
+{
+  "dcf_version": "1.0.0",
+  "kind": "component",
+  "profile": "standard",
+  "name": "Header",
+  "props": {
+    "user": { "type": "object" },
+    "cartItemCount": { "type": "number" }
+  },
+  "layout": {
+    "display": "flex",
+    "alignItems": "center",
+    "justifyContent": "space-between",
+    "padding": "{space.md} {space.xl}",
+    "backgroundColor": "{color.surface-elevated}",
+    "borderBottom": "1px solid {color.border}"
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "dcf_version": "1.0.0",
+  "kind": "component",
+  "profile": "standard",
+  "name": "CartItem",
+  "props": {
+    "item": { "type": "object" }
+  },
+  "layout": {
+    "display": "flex",
+    "alignItems": "center",
+    "gap": "{space.md}",
+    "padding": "{space.md}",
+    "backgroundColor": "{color.surface-elevated}",
+    "borderRadius": "{radius.md}",
+    "border": "1px solid {color.border}"
+  }
+}

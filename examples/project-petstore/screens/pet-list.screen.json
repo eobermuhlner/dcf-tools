@@ -1,0 +1,58 @@
+{
+  "dcf_version": "1.0.0",
+  "kind": "screen",
+  "profile": "standard",
+  "name": "PetListScreen",
+  "intent": "browse",
+  "layout": "MainLayout",
+  "title": "$strings.nav.pets",
+  "params": {
+    "category": { "type": "string" },
+    "status": { "type": "string" },
+    "search": { "type": "string" },
+    "page": { "type": "number" },
+    "sort": { "type": "string" }
+  },
+  "data": {
+    "pets": {
+      "source": "api",
+      "endpoint": "/pets",
+      "method": "GET"
+    },
+    "categories": {
+      "source": "api",
+      "endpoint": "/categories",
+      "method": "GET"
+    }
+  },
+  "content": [
+    {
+      "component": "PageHeader",
+      "props": {
+        "title": "$strings.nav.pets"
+      }
+    },
+    {
+      "component": "PetFilters",
+      "props": {
+        "categories": "$data.categories",
+        "currentCategory": "$params.category",
+        "currentStatus": "$params.status"
+      }
+    },
+    {
+      "component": "PetGrid",
+      "props": {
+        "pets": "$data.pets",
+        "sort": "$params.sort"
+      }
+    },
+    {
+      "component": "Pagination",
+      "props": {
+        "currentPage": "$params.page",
+        "totalPages": "$data.pets.totalPages"
+      }
+    }
+  ]
+}

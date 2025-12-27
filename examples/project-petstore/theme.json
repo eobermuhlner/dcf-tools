@@ -1,0 +1,28 @@
+{
+  "dcf_version": "1.0.0",
+  "kind": "theme",
+  "profile": "standard",
+  "name": "petstore-theme",
+  "theme": {
+    "light": {
+      "color": {
+        "background": { "value": "#FFFFFF" },
+        "surface": { "value": "#F8F9FA" },
+        "surface-elevated": { "value": "#FFFFFF" },
+        "text-primary": { "value": "#1A1A2E" },
+        "text-secondary": { "value": "#6C757D" },
+        "border": { "value": "#DEE2E6" }
+      }
+    },
+    "dark": {
+      "color": {
+        "background": { "value": "#1A1A2E" },
+        "surface": { "value": "#2D2D44" },
+        "surface-elevated": { "value": "#3D3D5C" },
+        "text-primary": { "value": "#F8F9FA" },
+        "text-secondary": { "value": "#ADB5BD" },
+        "border": { "value": "#4D4D6D" }
+      }
+    }
+  }
+}

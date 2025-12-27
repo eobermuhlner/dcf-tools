@@ -1,0 +1,46 @@
+{
+  "dcf_version": "1.0.0",
+  "kind": "screen",
+  "profile": "standard",
+  "name": "HomeScreen",
+  "intent": "browse",
+  "layout": "MainLayout",
+  "title": "$strings.app.name",
+  "data": {
+    "featuredPets": {
+      "source": "api",
+      "endpoint": "/pets/featured",
+      "method": "GET"
+    },
+    "categories": {
+      "source": "api",
+      "endpoint": "/categories",
+      "method": "GET"
+    }
+  },
+  "content": [
+    {
+      "component": "HeroSection",
+      "props": {
+        "title": "$strings.home.hero.title",
+        "subtitle": "$strings.home.hero.subtitle",
+        "ctaLabel": "$strings.home.hero.cta",
+        "ctaLink": "/pets"
+      }
+    },
+    {
+      "component": "CategoryGrid",
+      "props": {
+        "title": "$strings.home.categories.title",
+        "categories": "$data.categories"
+      }
+    },
+    {
+      "component": "FeaturedPetsSection",
+      "props": {
+        "title": "$strings.home.featured.title",
+        "pets": "$data.featuredPets"
+      }
+    }
+  ]
+}

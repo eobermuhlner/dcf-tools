@@ -1,0 +1,44 @@
+{
+  "dcf_version": "1.0.0",
+  "kind": "screen",
+  "profile": "standard",
+  "name": "CartScreen",
+  "intent": "view",
+  "layout": "MainLayout",
+  "title": "$strings.cart.title",
+  "data": {
+    "cart": {
+      "source": "context",
+      "key": "cart"
+    }
+  },
+  "content": [
+    {
+      "component": "PageHeader",
+      "props": {
+        "title": "$strings.cart.title"
+      }
+    },
+    {
+      "component": "CartItemList",
+      "props": {
+        "items": "$data.cart.items"
+      }
+    },
+    {
+      "component": "CartSummary",
+      "props": {
+        "subtotal": "$data.cart.subtotal",
+        "tax": "$data.cart.tax",
+        "total": "$data.cart.total"
+      }
+    },
+    {
+      "component": "CartActions",
+      "props": {
+        "checkoutUrl": "/checkout",
+        "continueShoppingUrl": "/pets"
+      }
+    }
+  ]
+}
