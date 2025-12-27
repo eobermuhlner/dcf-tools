@@ -130,56 +130,74 @@ const PreviewApp: React.FC = () => {
 
   // Check for each kind and collect entries
   if (dcfData.document.tokens && typeof dcfData.document.tokens === 'object') {
-    availableKinds.push('tokens');
-    Object.entries(dcfData.document.tokens).forEach(([key, value]) => {
+    const tokenEntriesRaw = Array.isArray(dcfData.document.tokens)
+      ? dcfData.document.tokens.map((token, idx) => [idx.toString(), token])
+      : Object.entries(dcfData.document.tokens);
+    tokenEntriesRaw.forEach(([key, value]) => {
       tokenEntries.push([key, value]);
     });
   }
   if (dcfData.document.components && typeof dcfData.document.components === 'object') {
-    availableKinds.push('components');
-    Object.entries(dcfData.document.components).forEach(([key, value]) => {
+    const componentEntriesRaw = Array.isArray(dcfData.document.components)
+      ? dcfData.document.components.map((comp, idx) => [idx.toString(), comp])
+      : Object.entries(dcfData.document.components);
+    componentEntriesRaw.forEach(([key, value]) => {
       componentEntries.push([key, value]);
     });
   }
   if (dcfData.document.layouts && typeof dcfData.document.layouts === 'object') {
-    availableKinds.push('layouts');
-    Object.entries(dcfData.document.layouts).forEach(([key, value]) => {
+    const layoutEntriesRaw = Array.isArray(dcfData.document.layouts)
+      ? dcfData.document.layouts.map((layout, idx) => [idx.toString(), layout])
+      : Object.entries(dcfData.document.layouts);
+    layoutEntriesRaw.forEach(([key, value]) => {
       layoutEntries.push([key, value]);
     });
   }
   if (dcfData.document.screens && typeof dcfData.document.screens === 'object') {
-    availableKinds.push('screens');
-    Object.entries(dcfData.document.screens).forEach(([key, value]) => {
+    const screenEntriesRaw = Array.isArray(dcfData.document.screens)
+      ? dcfData.document.screens.map((screen, idx) => [idx.toString(), screen])
+      : Object.entries(dcfData.document.screens);
+    screenEntriesRaw.forEach(([key, value]) => {
       screenEntries.push([key, value]);
     });
   }
   if (dcfData.document.navigation && typeof dcfData.document.navigation === 'object') {
-    availableKinds.push('navigation');
-    Object.entries(dcfData.document.navigation).forEach(([key, value]) => {
+    const navigationEntriesRaw = Array.isArray(dcfData.document.navigation)
+      ? dcfData.document.navigation.map((nav, idx) => [idx.toString(), nav])
+      : Object.entries(dcfData.document.navigation);
+    navigationEntriesRaw.forEach(([key, value]) => {
       navigationEntries.push([key, value]);
     });
   }
   if (dcfData.document.flows && typeof dcfData.document.flows === 'object') {
-    availableKinds.push('flows');
-    Object.entries(dcfData.document.flows).forEach(([key, value]) => {
+    const flowEntriesRaw = Array.isArray(dcfData.document.flows)
+      ? dcfData.document.flows.map((flow, idx) => [idx.toString(), flow])
+      : Object.entries(dcfData.document.flows);
+    flowEntriesRaw.forEach(([key, value]) => {
       flowEntries.push([key, value]);
     });
   }
   if (dcfData.document.themes && typeof dcfData.document.themes === 'object') {
-    availableKinds.push('themes');
-    Object.entries(dcfData.document.themes).forEach(([key, value]) => {
+    const themeEntriesRaw = Array.isArray(dcfData.document.themes)
+      ? dcfData.document.themes.map((theme, idx) => [idx.toString(), theme])
+      : Object.entries(dcfData.document.themes);
+    themeEntriesRaw.forEach(([key, value]) => {
       themeEntries.push([key, value]);
     });
   }
   if (dcfData.document.i18n && typeof dcfData.document.i18n === 'object') {
-    availableKinds.push('i18n');
-    Object.entries(dcfData.document.i18n).forEach(([key, value]) => {
+    const i18nEntriesRaw = Array.isArray(dcfData.document.i18n)
+      ? dcfData.document.i18n.map((i18n, idx) => [idx.toString(), i18n])
+      : Object.entries(dcfData.document.i18n);
+    i18nEntriesRaw.forEach(([key, value]) => {
       i18nEntries.push([key, value]);
     });
   }
   if (dcfData.document.rules && typeof dcfData.document.rules === 'object') {
-    availableKinds.push('rules');
-    Object.entries(dcfData.document.rules).forEach(([key, value]) => {
+    const ruleEntriesRaw = Array.isArray(dcfData.document.rules)
+      ? dcfData.document.rules.map((rule, idx) => [idx.toString(), rule])
+      : Object.entries(dcfData.document.rules);
+    ruleEntriesRaw.forEach(([key, value]) => {
       ruleEntries.push([key, value]);
     });
   }

@@ -243,7 +243,7 @@ function mapStyle(obj: any, tokens: any): Style | TextStyle | undefined {
 function createRenderNode(obj: any, path: string[], tokens: any): RenderNode {
   // Generate a stable ID based on the path
   const id = generateId(path);
-  
+
   // Try to determine the element type
   const type = getElementType(obj);
   const text = getText(obj);
@@ -251,6 +251,9 @@ function createRenderNode(obj: any, path: string[], tokens: any): RenderNode {
   const children = getChildren(obj);
   const style = mapStyle(obj, tokens);
   const layout = type ? mapLayout(obj) : undefined;
+
+  // Check if this is a DCF component definition (has kind === 'component' or has props/variants)
+  const isDCFComponent = obj.kind === 'component' || obj.props || obj.variants || obj.layout;
 
   // Apply mapping rules
   if (imageSrc) {
@@ -291,6 +294,40 @@ function createRenderNode(obj: any, path: string[], tokens: any): RenderNode {
       style,
       children: childNodes,
       label: type || 'frame'
+    };
+  } else if (isDCFComponent) {
+    // This is a DCF component definition - create a visual representation
+    // Even if it doesn't have explicit content, it likely has layout/styling information
+    const componentName = obj.name || (path.length > 0 ? path[path.length - 1] : 'component');
+
+    // Create a frame that represents the component visually
+    return {
+      kind: "frame",
+      id,
+      layout: layout || { type: "flex", direction: "column", align: "center", justify: "center" },
+      style: {
+        ...style,
+        // Ensure minimum dimensions so the component is visible
+        minWidth: style?.width ? undefined : 100,
+        minHeight: style?.height ? undefined : 40,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        border: style?.border ? undefined : "1px dashed #999",
+        backgroundColor: style?.background || style?.backgroundColor ? undefined : "#f9f9f9"
+      },
+      children: [{
+        kind: "text",
+        id: `text-${id}`,
+        text: componentName,
+        style: {
+          color: "#666",
+          fontSize: 12,
+          fontStyle: "italic",
+          textAlign: "center"
+        }
+      }],
+      label: `Component: ${componentName}`
     };
   } else {
     // Otherwise → unknown
@@ -421,9 +458,14 @@ export function dcfToRenderTree(dcfDocument: any): RenderNode {
   }
 
   // If no layouts, render components
-  const components = dcfDocument.components || dcfDocument.component;
+  let components = dcfDocument.components || dcfDocument.component;
+
   if (components && typeof components === 'object') {
-    const componentEntries = Object.entries(components);
+    // Handle both object (named) and array (indexed) structures for components
+    const componentEntries = Array.isArray(components)
+      ? components.map((comp, idx) => [idx.toString(), comp])
+      : Object.entries(components);
+
     if (componentEntries.length > 0) {
       // Create a root frame containing all components for preview
       const componentNodes: RenderNode[] = [];
@@ -431,10 +473,11 @@ export function dcfToRenderTree(dcfDocument: any): RenderNode {
       for (const [name, component] of componentEntries) {
         if (component && typeof component === 'object') {
           // Create a wrapper frame for each component to show its name and properties
+          // Preserve the component's internal name if it exists, otherwise use the key
           const componentObj = {
             ...component,
-            name,
-            type: (component as any).type || name,
+            name: (component as any).name || name,  // Use internal name if available, otherwise key
+            type: (component as any).type || (component as any).name || name,
             content: (component as any).content || [] // Add empty content if not defined
           };
 
@@ -457,6 +500,9 @@ export function dcfToRenderTree(dcfDocument: any): RenderNode {
             // Resolve the component's styles/layout with token values
             const resolvedStyles = resolveStyleTokens(componentStyles, tokens);
 
+            // Use the component's internal name if available, otherwise use the key
+            const componentName = (component as any).name || name;
+
             // Create a styled element that visually represents the component
             componentNode = {
               kind: "frame",
@@ -473,15 +519,15 @@ export function dcfToRenderTree(dcfDocument: any): RenderNode {
               },
               children: [{
                 kind: "text",
-                id: `text-${name}`,
-                text: name,
+                id: `text-${componentNode.id}`,
+                text: componentName,
                 style: {
                   color: resolvedStyles.color || "white",
                   fontWeight: resolvedStyles.fontWeight || "bold",
                   fontSize: resolvedStyles.fontSize
                 }
               }],
-              label: `Styled Component: ${name}`
+              label: `Styled Component: ${componentName}`
             };
           }
 
