@@ -572,9 +572,9 @@ export function dcfToRenderTree(dcfDocument: any): RenderNode {
   }
 
   // If no components, try to render tokens visually
-  const tokenData = dcfDocument.tokens || dcfDocument.token;
-  if (tokenData && typeof tokenData === 'object') {
-    return createTokensRenderTree(tokenData);
+  // Use the consolidated tokens (already processed above) for rendering
+  if (tokens && typeof tokens === 'object' && Object.keys(tokens).length > 0) {
+    return createTokensRenderTree(tokens);
   }
 
   // If nothing else, return an empty root
