@@ -572,7 +572,43 @@ export function dcfToRenderTree(dcfDocument: any): RenderNode {
     }
   }
 
-  // If no components, try to render tokens visually
+  // If no components, try to render themes
+  const themes = dcfDocument.themes || dcfDocument.theme;
+  if (themes && typeof themes === 'object') {
+    const themeEntries = Object.entries(themes);
+    if (themeEntries.length > 0) {
+      const [firstThemeName, firstTheme] = themeEntries[0];
+      if (firstTheme && typeof firstTheme === 'object') {
+        return createThemeRenderTree(themes, firstThemeName, tokens);
+      }
+    }
+  }
+
+  // If no themes, try to render i18n
+  const i18n = dcfDocument.i18n;
+  if (i18n && typeof i18n === 'object') {
+    const i18nEntries = Object.entries(i18n);
+    if (i18nEntries.length > 0) {
+      const [firstName, firstI18n] = i18nEntries[0];
+      if (firstI18n && typeof firstI18n === 'object') {
+        return createI18nRenderTree(firstI18n, firstName, tokens);
+      }
+    }
+  }
+
+  // If no i18n, try to render rules
+  const rules = dcfDocument.rules;
+  if (rules && typeof rules === 'object') {
+    const rulesEntries = Object.entries(rules);
+    if (rulesEntries.length > 0) {
+      const [firstName, firstRules] = rulesEntries[0];
+      if (firstRules && typeof firstRules === 'object') {
+        return createRulesRenderTree(firstRules, firstName, tokens);
+      }
+    }
+  }
+
+  // If no rules, try to render tokens visually
   // Use the consolidated tokens (already processed above) for rendering
   if (tokens && typeof tokens === 'object' && Object.keys(tokens).length > 0) {
     return createTokensRenderTree(tokens);
@@ -822,5 +858,283 @@ function createFlowRenderTree(flow: any, name: string, tokens: any): RenderNode 
       ...stepNodes
     ],
     label: `Flow Preview: ${name}`
+  };
+}
+
+// Helper function to create a visual representation of themes
+function createThemeRenderTree(themes: any, name: string, tokens: any): RenderNode {
+  const themeNodes: RenderNode[] = [];
+
+  // Process each theme variant (light, dark, etc.)
+  for (const [themeName, themeData] of Object.entries(themes)) {
+    if (typeof themeData !== 'object' || !themeData) continue;
+
+    const colorNodes: RenderNode[] = [];
+    const themeObj = themeData as any;
+
+    // Look for color overrides in the theme
+    const colors = themeObj.color || themeObj.colors || {};
+    for (const [colorName, colorValue] of Object.entries(colors)) {
+      const value = typeof colorValue === 'object' && (colorValue as any).value
+        ? (colorValue as any).value
+        : colorValue;
+
+      if (typeof value === 'string' && (value.startsWith('#') || value.startsWith('rgb'))) {
+        colorNodes.push({
+          kind: "frame",
+          id: `theme-${themeName}-color-${colorName}`,
+          layout: { type: "flex", direction: "row", gap: 8 },
+          style: { alignItems: "center", padding: 4 },
+          children: [
+            {
+              kind: "frame",
+              id: `theme-${themeName}-color-box-${colorName}`,
+              style: {
+                width: 24,
+                height: 24,
+                backgroundColor: value,
+                border: "1px solid #ccc",
+                borderRadius: 4
+              },
+              children: [],
+              label: `Color: ${value}`
+            },
+            {
+              kind: "text",
+              id: `theme-${themeName}-color-label-${colorName}`,
+              text: `${colorName}: ${value}`,
+              style: { fontSize: 12 }
+            }
+          ],
+          label: `Theme Color: ${colorName}`
+        });
+      }
+    }
+
+    themeNodes.push({
+      kind: "frame",
+      id: `theme-${themeName}`,
+      layout: { type: "flex", direction: "column", gap: 4 },
+      style: {
+        padding: 12,
+        marginBottom: 12,
+        border: "1px solid #ccc",
+        borderRadius: 8,
+        backgroundColor: themeName === 'dark' ? '#2d2d2d' : '#f9f9f9'
+      },
+      children: [
+        {
+          kind: "text",
+          id: `theme-${themeName}-title`,
+          text: `Theme: ${themeName}`,
+          style: {
+            fontWeight: "bold",
+            fontSize: 14,
+            marginBottom: 8,
+            color: themeName === 'dark' ? '#fff' : '#000'
+          }
+        },
+        ...colorNodes
+      ],
+      label: `Theme: ${themeName}`
+    });
+  }
+
+  return {
+    kind: "frame",
+    id: "node-root",
+    layout: { type: "flex", direction: "column", gap: 16 },
+    style: { padding: 16, width: "100%", minHeight: 400, backgroundColor: "#fff" },
+    children: [
+      {
+        kind: "text",
+        id: "theme-title",
+        text: `Themes: ${name}`,
+        style: { fontSize: 18, fontWeight: "bold", marginBottom: 16 }
+      },
+      ...themeNodes
+    ],
+    label: `Theme Preview: ${name}`
+  };
+}
+
+// Helper function to create a visual representation of i18n
+function createI18nRenderTree(i18n: any, name: string, tokens: any): RenderNode {
+  const stringNodes: RenderNode[] = [];
+
+  // Get locale and strings
+  const locale = i18n.locale || 'unknown';
+  const strings = i18n.strings || {};
+
+  // Group strings by prefix (e.g., "nav.", "common.", etc.)
+  const groupedStrings: Record<string, Array<[string, string]>> = {};
+
+  for (const [key, value] of Object.entries(strings)) {
+    if (typeof value !== 'string') continue;
+
+    const prefix = key.includes('.') ? key.split('.')[0] : 'other';
+    if (!groupedStrings[prefix]) {
+      groupedStrings[prefix] = [];
+    }
+    groupedStrings[prefix].push([key, value]);
+  }
+
+  // Create nodes for each group
+  for (const [group, entries] of Object.entries(groupedStrings)) {
+    const entryNodes: RenderNode[] = entries.slice(0, 5).map(([key, value], idx) => ({
+      kind: "frame" as const,
+      id: `i18n-${group}-${idx}`,
+      layout: { type: "flex" as const, direction: "row" as const, gap: 8 },
+      style: { padding: 4 },
+      children: [
+        {
+          kind: "text" as const,
+          id: `i18n-${group}-key-${idx}`,
+          text: key,
+          style: { fontSize: 12, fontWeight: "bold", minWidth: 150 }
+        },
+        {
+          kind: "text" as const,
+          id: `i18n-${group}-value-${idx}`,
+          text: value,
+          style: { fontSize: 12, color: "#666" }
+        }
+      ],
+      label: `String: ${key}`
+    }));
+
+    // Add "and X more..." if there are more entries
+    if (entries.length > 5) {
+      entryNodes.push({
+        kind: "text",
+        id: `i18n-${group}-more`,
+        text: `... and ${entries.length - 5} more`,
+        style: { fontSize: 11, color: "#999", fontStyle: "italic" }
+      });
+    }
+
+    stringNodes.push({
+      kind: "frame",
+      id: `i18n-group-${group}`,
+      layout: { type: "flex", direction: "column", gap: 2 },
+      style: {
+        padding: 8,
+        marginBottom: 8,
+        border: "1px solid #e0e0e0",
+        borderRadius: 4,
+        backgroundColor: "#fafafa"
+      },
+      children: [
+        {
+          kind: "text",
+          id: `i18n-group-${group}-title`,
+          text: `${group} (${entries.length} strings)`,
+          style: { fontWeight: "bold", fontSize: 13, marginBottom: 4, color: "#333" }
+        },
+        ...entryNodes
+      ],
+      label: `i18n Group: ${group}`
+    });
+  }
+
+  return {
+    kind: "frame",
+    id: "node-root",
+    layout: { type: "flex", direction: "column", gap: 16 },
+    style: { padding: 16, width: "100%", minHeight: 400, backgroundColor: "#fff" },
+    children: [
+      {
+        kind: "text",
+        id: "i18n-title",
+        text: `i18n: ${name}`,
+        style: { fontSize: 18, fontWeight: "bold", marginBottom: 8 }
+      },
+      {
+        kind: "text",
+        id: "i18n-locale",
+        text: `Locale: ${locale}`,
+        style: { fontSize: 14, color: "#666", marginBottom: 16 }
+      },
+      ...stringNodes
+    ],
+    label: `i18n Preview: ${name}`
+  };
+}
+
+// Helper function to create a visual representation of rules
+function createRulesRenderTree(rulesDoc: any, name: string, tokens: any): RenderNode {
+  const ruleNodes: RenderNode[] = [];
+
+  // Get the rules object
+  const rules = rulesDoc.rules || rulesDoc;
+
+  for (const [ruleName, ruleData] of Object.entries(rules)) {
+    if (typeof ruleData !== 'object' || !ruleData) continue;
+
+    const ruleObj = ruleData as any;
+    const description = ruleObj.description || '';
+    const constraints = ruleObj.constraints || [];
+
+    const constraintNodes: RenderNode[] = constraints.slice(0, 3).map((constraint: any, idx: number) => ({
+      kind: "text" as const,
+      id: `rule-${ruleName}-constraint-${idx}`,
+      text: `• ${constraint.rule || 'constraint'}: ${constraint.property || constraint.element || constraint.allowedTokens?.join(', ') || ''}`,
+      style: { fontSize: 11, color: "#666", marginLeft: 8 }
+    }));
+
+    if (constraints.length > 3) {
+      constraintNodes.push({
+        kind: "text",
+        id: `rule-${ruleName}-more`,
+        text: `  ... and ${constraints.length - 3} more constraints`,
+        style: { fontSize: 10, color: "#999", fontStyle: "italic" }
+      });
+    }
+
+    ruleNodes.push({
+      kind: "frame",
+      id: `rule-${ruleName}`,
+      layout: { type: "flex", direction: "column", gap: 4 },
+      style: {
+        padding: 10,
+        marginBottom: 8,
+        border: "1px solid #d0d0d0",
+        borderRadius: 6,
+        backgroundColor: "#f5f5f5"
+      },
+      children: [
+        {
+          kind: "text",
+          id: `rule-${ruleName}-title`,
+          text: ruleName,
+          style: { fontWeight: "bold", fontSize: 14, color: "#333" }
+        },
+        {
+          kind: "text",
+          id: `rule-${ruleName}-desc`,
+          text: description,
+          style: { fontSize: 12, color: "#666", marginBottom: 4 }
+        },
+        ...constraintNodes
+      ],
+      label: `Rule: ${ruleName}`
+    });
+  }
+
+  return {
+    kind: "frame",
+    id: "node-root",
+    layout: { type: "flex", direction: "column", gap: 16 },
+    style: { padding: 16, width: "100%", minHeight: 400, backgroundColor: "#fff" },
+    children: [
+      {
+        kind: "text",
+        id: "rules-title",
+        text: `Rules: ${name}`,
+        style: { fontSize: 18, fontWeight: "bold", marginBottom: 16 }
+      },
+      ...ruleNodes
+    ],
+    label: `Rules Preview: ${name}`
   };
 }
