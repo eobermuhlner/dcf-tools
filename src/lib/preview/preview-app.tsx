@@ -33,6 +33,39 @@ const KIND_COLORS: Record<string, string> = {
   rules: '#F44336',
 };
 
+// Kind hierarchy order (highest-level concepts first, lowest-level last)
+const KIND_HIERARCHY: Record<string, number> = {
+  screen: 1,
+  flow: 2,
+  navigation: 3,
+  layout: 4,
+  component: 5,
+  tokens: 6,
+  theme: 7,
+  theming: 8,
+  i18n: 9,
+  rules: 10,
+};
+
+// Sort files by kind hierarchy, then by name
+function sortFilesByKindHierarchy(files: FileInfo[]): FileInfo[] {
+  return [...files].sort((a, b) => {
+    const kindA = a.kind || '';
+    const kindB = b.kind || '';
+    const orderA = KIND_HIERARCHY[kindA] ?? 100;
+    const orderB = KIND_HIERARCHY[kindB] ?? 100;
+
+    if (orderA !== orderB) {
+      return orderA - orderB;
+    }
+
+    // Same kind: sort by name/path
+    const nameA = a.name || a.relativePath;
+    const nameB = b.name || b.relativePath;
+    return nameA.localeCompare(nameB);
+  });
+}
+
 // File Panel Component
 const FilePanel: React.FC<{
   files: FileInfo[];
@@ -43,6 +76,9 @@ const FilePanel: React.FC<{
 }> = ({ files, selectedFiles, onSelectionChange, collapsed, onToggleCollapse }) => {
   const [lastClickedIndex, setLastClickedIndex] = useState<number | null>(null);
 
+  // Sort files by kind hierarchy (screens first, tokens last)
+  const sortedFiles = sortFilesByKindHierarchy(files);
+
   const handleFileClick = (file: FileInfo, index: number, event: React.MouseEvent) => {
     const newSelection = new Set(selectedFiles);
 
@@ -51,7 +87,7 @@ const FilePanel: React.FC<{
       const start = Math.min(lastClickedIndex, index);
       const end = Math.max(lastClickedIndex, index);
       for (let i = start; i <= end; i++) {
-        newSelection.add(files[i].path);
+        newSelection.add(sortedFiles[i].path);
       }
     } else if (event.ctrlKey || event.metaKey) {
       // Ctrl/Cmd+click: toggle selection
@@ -102,7 +138,7 @@ const FilePanel: React.FC<{
         <button onClick={handleDeselectAll} className="action-button">Deselect All</button>
       </div>
       <div className="file-list">
-        {files.map((file, index) => (
+        {sortedFiles.map((file, index) => (
           <div
             key={file.path}
             className={`file-item ${selectedFiles.has(file.path) ? 'selected' : ''}`}
