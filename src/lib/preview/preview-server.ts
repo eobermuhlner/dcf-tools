@@ -27,11 +27,21 @@ interface PreviewOptions {
   quiet: boolean;
 }
 
+// File metadata for the file selection panel
+interface FileInfo {
+  path: string;            // Absolute file path
+  relativePath: string;    // Relative to working directory
+  kind: string | null;     // Detected DCF kind (tokens, component, etc.)
+  name: string | null;     // DCF name property if present
+  elements: string[];      // List of element keys in this file (dot-notation)
+}
+
 interface DCFPreviewData {
   document: any;
   normalized: any;
   validation: any;
   error?: string;
+  files: FileInfo[];       // List of loaded files with metadata
 }
 
 // Previewable kinds according to the specification
@@ -72,21 +82,47 @@ async function discoverDCFFiles(paths: string[]): Promise<string[]> {
   });
 }
 
+// Helper function to extract element keys from a document in dot-notation format
+function extractElementKeys(doc: any, filePath: string): string[] {
+  const elements: string[] = [];
+  const kindCategories = ['tokens', 'components', 'layouts', 'screens', 'navigation', 'flows', 'themes', 'i18n', 'rules'];
+
+  // If document has a kind property (single entity file)
+  if (doc.kind) {
+    const name = doc.name || path.basename(filePath, path.extname(filePath));
+    elements.push(`${doc.kind}.${name}`);
+    return elements;
+  }
+
+  // Otherwise, extract keys from each category
+  for (const category of kindCategories) {
+    if (doc[category] && typeof doc[category] === 'object') {
+      for (const key of Object.keys(doc[category])) {
+        elements.push(`${category}.${key}`);
+      }
+    }
+  }
+
+  return elements;
+}
+
 // Function to load and process DCF files with validation
 async function loadDCFData(filePaths: string[], options: PreviewOptions): Promise<DCFPreviewData> {
   const allDocuments: any[] = [];
   const allValidations: any[] = [];
+  const fileInfoList: FileInfo[] = [];
   let hasErrors = false;
   let errorMessage = '';
+  const cwd = process.cwd();
 
   for (const filePath of filePaths) {
     try {
       // Read file directly using Node.js fs module
-      const fs = await import('fs');
+      const fsModule = await import('fs');
       const pathModule = await import('path');
       const yaml = (await import('js-yaml')).default;
 
-      const fileContent = fs.readFileSync(filePath, 'utf-8');
+      const fileContent = fsModule.readFileSync(filePath, 'utf-8');
       const ext = pathModule.extname(filePath).toLowerCase();
 
       let content;
@@ -142,15 +178,36 @@ async function loadDCFData(filePaths: string[], options: PreviewOptions): Promis
 
       allValidations.push(validation);
 
+      // Extract file metadata
+      const relativePath = path.relative(cwd, filePath);
+      const fileInfo: FileInfo = {
+        path: filePath,
+        relativePath: relativePath || path.basename(filePath),
+        kind: content.kind || null,
+        name: content.name || null,
+        elements: extractElementKeys(content, filePath)
+      };
+      fileInfoList.push(fileInfo);
+
       if (!validation.ok) {
         hasErrors = true;
         errorMessage += `File ${filePath}: ${validation.errors.map(e => e.message).join('; ')}\n`;
       } else {
-        allDocuments.push(content);
+        allDocuments.push({ content, filePath });
       }
     } catch (error) {
       hasErrors = true;
       errorMessage += `Error loading ${filePath}: ${error instanceof Error ? error.message : 'Unknown error'}\n`;
+
+      // Still add file info for failed files
+      const relativePath = path.relative(cwd, filePath);
+      fileInfoList.push({
+        path: filePath,
+        relativePath: relativePath || path.basename(filePath),
+        kind: null,
+        name: null,
+        elements: []
+      });
     }
   }
 
@@ -159,17 +216,15 @@ async function loadDCFData(filePaths: string[], options: PreviewOptions): Promis
       document: null,
       normalized: null,
       validation: allValidations,
-      error: errorMessage
+      error: errorMessage,
+      files: fileInfoList
     };
   }
 
   // Combine all documents into a single object structure
   const combinedDocument: any = {};
 
-  for (let i = 0; i < allDocuments.length; i++) {
-    const doc = allDocuments[i];
-    const filePath = filePaths[i]; // Get the corresponding filePath
-
+  for (const { content: doc, filePath } of allDocuments) {
     // If document has a kind property, group by kind (for individual components/tokens)
     if (doc.kind) {
       if (!combinedDocument[doc.kind]) {
@@ -178,11 +233,11 @@ async function loadDCFData(filePaths: string[], options: PreviewOptions): Promis
 
       // If it's a named entity (like a component), store by name
       if (doc.name) {
-        combinedDocument[doc.kind][doc.name] = doc;
+        combinedDocument[doc.kind][doc.name] = { ...doc, _sourceFile: filePath };
       } else {
         // If no name, generate a unique key based on file path
         const fileName = path.basename(filePath, path.extname(filePath));
-        combinedDocument[doc.kind][fileName] = { ...doc, _filePath: filePath };
+        combinedDocument[doc.kind][fileName] = { ...doc, _sourceFile: filePath };
       }
     } else {
       // If document doesn't have a kind, it might be a full DCF document with tokens/components/layouts
@@ -199,8 +254,14 @@ async function loadDCFData(filePaths: string[], options: PreviewOptions): Promis
             combinedDocument[key] = {};
           }
 
-          // Deep merge to preserve existing content
-          Object.assign(combinedDocument[key], value);
+          // Deep merge to preserve existing content, and add source file tracking
+          for (const [subKey, subValue] of Object.entries(value as object)) {
+            if (typeof subValue === 'object' && subValue !== null) {
+              (combinedDocument[key] as any)[subKey] = { ...(subValue as object), _sourceFile: filePath };
+            } else {
+              (combinedDocument[key] as any)[subKey] = subValue;
+            }
+          }
         }
       }
     }
@@ -228,7 +289,8 @@ async function loadDCFData(filePaths: string[], options: PreviewOptions): Promis
       document: filteredDocument,
       normalized: filteredDocument,
       validation: allValidations,
-      error: hasErrors && options.allowInvalid ? errorMessage : undefined
+      error: hasErrors && options.allowInvalid ? errorMessage : undefined,
+      files: fileInfoList
     };
   }
 
@@ -264,7 +326,8 @@ async function loadDCFData(filePaths: string[], options: PreviewOptions): Promis
     document: finalDocument,
     normalized,
     validation: combinedValidation,
-    error: hasErrors && options.allowInvalid ? errorMessage : undefined
+    error: hasErrors && options.allowInvalid ? errorMessage : undefined,
+    files: fileInfoList
   };
 }
 

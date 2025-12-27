@@ -1,19 +1,258 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { RenderNodeView } from '../../render/RenderNodeView.js';
 import { dcfToRenderTree } from '../../render/dcfToRenderTree.js';
+
+// File metadata interface matching server-side FileInfo
+interface FileInfo {
+  path: string;
+  relativePath: string;
+  kind: string | null;
+  name: string | null;
+  elements: string[];
+}
 
 interface DCFData {
   document: any;
   normalized: any;
   validation: any;
   error?: string;
+  files: FileInfo[];
+}
+
+// Kind badge colors
+const KIND_COLORS: Record<string, string> = {
+  tokens: '#4CAF50',
+  component: '#2196F3',
+  layout: '#9C27B0',
+  screen: '#FF9800',
+  navigation: '#00BCD4',
+  flow: '#E91E63',
+  theme: '#795548',
+  theming: '#607D8B',
+  i18n: '#3F51B5',
+  rules: '#F44336',
+};
+
+// File Panel Component
+const FilePanel: React.FC<{
+  files: FileInfo[];
+  selectedFiles: Set<string>;
+  onSelectionChange: (newSelection: Set<string>) => void;
+  collapsed: boolean;
+  onToggleCollapse: () => void;
+}> = ({ files, selectedFiles, onSelectionChange, collapsed, onToggleCollapse }) => {
+  const [lastClickedIndex, setLastClickedIndex] = useState<number | null>(null);
+
+  const handleFileClick = (file: FileInfo, index: number, event: React.MouseEvent) => {
+    const newSelection = new Set(selectedFiles);
+
+    if (event.shiftKey && lastClickedIndex !== null) {
+      // Shift+click: range selection
+      const start = Math.min(lastClickedIndex, index);
+      const end = Math.max(lastClickedIndex, index);
+      for (let i = start; i <= end; i++) {
+        newSelection.add(files[i].path);
+      }
+    } else if (event.ctrlKey || event.metaKey) {
+      // Ctrl/Cmd+click: toggle selection
+      if (newSelection.has(file.path)) {
+        newSelection.delete(file.path);
+      } else {
+        newSelection.add(file.path);
+      }
+    } else {
+      // Regular click: single selection
+      newSelection.clear();
+      newSelection.add(file.path);
+    }
+
+    setLastClickedIndex(index);
+    onSelectionChange(newSelection);
+  };
+
+  const handleSelectAll = () => {
+    const newSelection = new Set(files.map(f => f.path));
+    onSelectionChange(newSelection);
+  };
+
+  const handleDeselectAll = () => {
+    onSelectionChange(new Set());
+  };
+
+  if (collapsed) {
+    return (
+      <div className="file-panel collapsed">
+        <button className="collapse-button" onClick={onToggleCollapse} title="Expand file panel">
+          &raquo;
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="file-panel">
+      <div className="file-panel-header">
+        <h3>Files ({files.length})</h3>
+        <button className="collapse-button" onClick={onToggleCollapse} title="Collapse file panel">
+          &laquo;
+        </button>
+      </div>
+      <div className="file-panel-actions">
+        <button onClick={handleSelectAll} className="action-button">Select All</button>
+        <button onClick={handleDeselectAll} className="action-button">Deselect All</button>
+      </div>
+      <div className="file-list">
+        {files.map((file, index) => (
+          <div
+            key={file.path}
+            className={`file-item ${selectedFiles.has(file.path) ? 'selected' : ''}`}
+            onClick={(e) => handleFileClick(file, index, e)}
+          >
+            <div className="file-info">
+              <span className="file-path" title={file.path}>{file.relativePath}</span>
+              {file.name && <span className="file-name">{file.name}</span>}
+            </div>
+            {file.kind && (
+              <span
+                className="kind-badge"
+                style={{ backgroundColor: KIND_COLORS[file.kind] || '#999' }}
+              >
+                {file.kind}
+              </span>
+            )}
+          </div>
+        ))}
+      </div>
+      <div className="file-panel-footer">
+        <small>{selectedFiles.size} of {files.length} selected</small>
+      </div>
+    </div>
+  );
+};
+
+// Resizable divider component
+const ResizableDivider: React.FC<{
+  onResize: (delta: number) => void;
+}> = ({ onResize }) => {
+  const isDragging = useRef(false);
+  const startX = useRef(0);
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    isDragging.current = true;
+    startX.current = e.clientX;
+    document.body.style.cursor = 'col-resize';
+    document.body.style.userSelect = 'none';
+  };
+
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!isDragging.current) return;
+      const delta = e.clientX - startX.current;
+      startX.current = e.clientX;
+      onResize(delta);
+    };
+
+    const handleMouseUp = () => {
+      isDragging.current = false;
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+    };
+
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [onResize]);
+
+  return <div className="resizable-divider" onMouseDown={handleMouseDown} />;
+};
+
+// Helper function to filter document to only include elements from selected files
+function filterDocumentByFiles(document: any, files: FileInfo[], selectedFiles: Set<string>): any {
+  if (!document || selectedFiles.size === 0) {
+    return null;
+  }
+
+  // If all files are selected, return the full document
+  if (selectedFiles.size === files.length) {
+    return document;
+  }
+
+  // Build a set of element keys from selected files
+  const selectedElements = new Set<string>();
+  for (const file of files) {
+    if (selectedFiles.has(file.path)) {
+      for (const element of file.elements) {
+        selectedElements.add(element);
+      }
+    }
+  }
+
+  // Create a filtered document with only elements from selected files
+  // but keep the full tokens for resolution
+  const filtered: any = {
+    dcf_version: document.dcf_version,
+    profile: document.profile,
+    // Keep full tokens for reference resolution
+    tokens: document.tokens,
+  };
+
+  const categories = ['components', 'layouts', 'screens', 'navigation', 'flows', 'themes', 'i18n', 'rules'];
+
+  for (const category of categories) {
+    if (document[category] && typeof document[category] === 'object') {
+      const filteredCategory: any = {};
+      for (const [key, value] of Object.entries(document[category])) {
+        const elementKey = `${category}.${key}`;
+        if (selectedElements.has(elementKey)) {
+          filteredCategory[key] = value;
+        }
+      }
+      if (Object.keys(filteredCategory).length > 0) {
+        filtered[category] = filteredCategory;
+      }
+    }
+  }
+
+  return filtered;
 }
 
 const PreviewApp: React.FC = () => {
   const [dcfData, setDcfData] = useState<DCFData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [selectedKind, setSelectedKind] = useState<string | null>(null); // For filtering specific DCF kinds
+  const [selectedFiles, setSelectedFiles] = useState<Set<string>>(new Set());
+  const [leftPanelWidth, setLeftPanelWidth] = useState(250);
+  const [leftPanelCollapsed, setLeftPanelCollapsed] = useState(false);
+  const [previousFilePaths, setPreviousFilePaths] = useState<Set<string>>(new Set());
+
+  // Initialize selection when data loads
+  useEffect(() => {
+    if (dcfData?.files) {
+      const currentPaths = new Set(dcfData.files.map(f => f.path));
+
+      // Check if this is first load or files changed
+      if (previousFilePaths.size === 0) {
+        // First load: select all files
+        setSelectedFiles(currentPaths);
+      } else {
+        // Subsequent load: preserve selection for existing files, don't auto-select new files
+        const newSelection = new Set<string>();
+        for (const path of selectedFiles) {
+          if (currentPaths.has(path)) {
+            newSelection.add(path);
+          }
+        }
+        // If all selected files were removed, keep empty selection
+        setSelectedFiles(newSelection);
+      }
+
+      setPreviousFilePaths(currentPaths);
+    }
+  }, [dcfData?.files]);
 
   useEffect(() => {
     let pollInterval: NodeJS.Timeout;
@@ -45,7 +284,7 @@ const PreviewApp: React.FC = () => {
     // Initial fetch
     fetchData();
 
-    // Set up polling to check for updates (instead of SSE)
+    // Set up polling to check for updates
     pollInterval = setInterval(async () => {
       try {
         const response = await fetch('/api/dcf');
@@ -59,7 +298,7 @@ const PreviewApp: React.FC = () => {
       } catch (err) {
         console.error('Error fetching updated data:', err);
       }
-    }, 5000); // Poll every 5 seconds instead of constant SSE updates
+    }, 5000);
 
     return () => {
       isCancelled = true;
@@ -69,22 +308,40 @@ const PreviewApp: React.FC = () => {
     };
   }, []);
 
+  const handleResize = useCallback((delta: number) => {
+    setLeftPanelWidth(prev => {
+      const newWidth = prev + delta;
+      // Enforce minimum widths
+      return Math.max(150, Math.min(newWidth, window.innerWidth - 300));
+    });
+  }, []);
+
+  const handleSelectionChange = useCallback((newSelection: Set<string>) => {
+    setSelectedFiles(newSelection);
+  }, []);
+
   if (loading) {
     return (
-      <div className="preview-container">
-        <h1>DCF Preview</h1>
-        <p>Loading DCF document...</p>
+      <div className="preview-app">
+        <style>{styles}</style>
+        <div className="loading-container">
+          <h1>DCF Preview</h1>
+          <p>Loading DCF documents...</p>
+        </div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="preview-container">
-        <h1>DCF Preview - Error</h1>
-        <div className="error-message">
-          <h2>Error Loading DCF Document</h2>
-          <p>{error}</p>
+      <div className="preview-app">
+        <style>{styles}</style>
+        <div className="error-container">
+          <h1>DCF Preview - Error</h1>
+          <div className="error-message">
+            <h2>Error Loading DCF Documents</h2>
+            <p>{error}</p>
+          </div>
         </div>
       </div>
     );
@@ -92,9 +349,12 @@ const PreviewApp: React.FC = () => {
 
   if (!dcfData) {
     return (
-      <div className="preview-container">
-        <h1>DCF Preview</h1>
-        <p>No DCF data available</p>
+      <div className="preview-app">
+        <style>{styles}</style>
+        <div className="loading-container">
+          <h1>DCF Preview</h1>
+          <p>No DCF data available</p>
+        </div>
       </div>
     );
   }
@@ -102,575 +362,373 @@ const PreviewApp: React.FC = () => {
   // Check if there are validation errors
   if (dcfData.error) {
     return (
-      <div className="preview-container">
-        <h1>DCF Preview - Validation Error</h1>
-        <div className="error-message">
-          <h2>Validation Error</h2>
-          <p>{dcfData.error}</p>
-          <details>
-            <summary>Validation Details</summary>
-            <pre>{JSON.stringify(dcfData.validation, null, 2)}</pre>
-          </details>
+      <div className="preview-app">
+        <style>{styles}</style>
+        <div className="error-container">
+          <h1>DCF Preview - Validation Error</h1>
+          <div className="error-message">
+            <h2>Validation Error</h2>
+            <p>{dcfData.error}</p>
+            <details>
+              <summary>Validation Details</summary>
+              <pre>{JSON.stringify(dcfData.validation, null, 2)}</pre>
+            </details>
+          </div>
         </div>
       </div>
     );
   }
 
-  // Get available DCF kinds from the document by checking top-level properties
-  const availableKinds = [];
-  const tokenEntries = [];
-  const componentEntries = [];
-  const layoutEntries = [];
-  const screenEntries = [];
-  const navigationEntries = [];
-  const flowEntries = [];
-  const themeEntries = [];
-  const i18nEntries = [];
-  const ruleEntries = [];
+  // Filter document based on selected files
+  const filteredDocument = filterDocumentByFiles(
+    dcfData.document,
+    dcfData.files || [],
+    selectedFiles
+  );
 
-  // Check for each kind and collect entries
-  if (dcfData.document.tokens && typeof dcfData.document.tokens === 'object') {
-    const tokenEntriesRaw = Array.isArray(dcfData.document.tokens)
-      ? dcfData.document.tokens.map((token, idx) => [idx.toString(), token])
-      : Object.entries(dcfData.document.tokens);
-    tokenEntriesRaw.forEach(([key, value]) => {
-      tokenEntries.push([key, value]);
-    });
-  }
-  if (dcfData.document.components && typeof dcfData.document.components === 'object') {
-    const componentEntriesRaw = Array.isArray(dcfData.document.components)
-      ? dcfData.document.components.map((comp, idx) => [idx.toString(), comp])
-      : Object.entries(dcfData.document.components);
-    componentEntriesRaw.forEach(([key, value]) => {
-      componentEntries.push([key, value]);
-    });
-  }
-  if (dcfData.document.layouts && typeof dcfData.document.layouts === 'object') {
-    const layoutEntriesRaw = Array.isArray(dcfData.document.layouts)
-      ? dcfData.document.layouts.map((layout, idx) => [idx.toString(), layout])
-      : Object.entries(dcfData.document.layouts);
-    layoutEntriesRaw.forEach(([key, value]) => {
-      layoutEntries.push([key, value]);
-    });
-  }
-  if (dcfData.document.screens && typeof dcfData.document.screens === 'object') {
-    const screenEntriesRaw = Array.isArray(dcfData.document.screens)
-      ? dcfData.document.screens.map((screen, idx) => [idx.toString(), screen])
-      : Object.entries(dcfData.document.screens);
-    screenEntriesRaw.forEach(([key, value]) => {
-      screenEntries.push([key, value]);
-    });
-  }
-  if (dcfData.document.navigation && typeof dcfData.document.navigation === 'object') {
-    const navigationEntriesRaw = Array.isArray(dcfData.document.navigation)
-      ? dcfData.document.navigation.map((nav, idx) => [idx.toString(), nav])
-      : Object.entries(dcfData.document.navigation);
-    navigationEntriesRaw.forEach(([key, value]) => {
-      navigationEntries.push([key, value]);
-    });
-  }
-  if (dcfData.document.flows && typeof dcfData.document.flows === 'object') {
-    const flowEntriesRaw = Array.isArray(dcfData.document.flows)
-      ? dcfData.document.flows.map((flow, idx) => [idx.toString(), flow])
-      : Object.entries(dcfData.document.flows);
-    flowEntriesRaw.forEach(([key, value]) => {
-      flowEntries.push([key, value]);
-    });
-  }
-  if (dcfData.document.themes && typeof dcfData.document.themes === 'object') {
-    const themeEntriesRaw = Array.isArray(dcfData.document.themes)
-      ? dcfData.document.themes.map((theme, idx) => [idx.toString(), theme])
-      : Object.entries(dcfData.document.themes);
-    themeEntriesRaw.forEach(([key, value]) => {
-      themeEntries.push([key, value]);
-    });
-  }
-  if (dcfData.document.i18n && typeof dcfData.document.i18n === 'object') {
-    const i18nEntriesRaw = Array.isArray(dcfData.document.i18n)
-      ? dcfData.document.i18n.map((i18n, idx) => [idx.toString(), i18n])
-      : Object.entries(dcfData.document.i18n);
-    i18nEntriesRaw.forEach(([key, value]) => {
-      i18nEntries.push([key, value]);
-    });
-  }
-  if (dcfData.document.rules && typeof dcfData.document.rules === 'object') {
-    const ruleEntriesRaw = Array.isArray(dcfData.document.rules)
-      ? dcfData.document.rules.map((rule, idx) => [idx.toString(), rule])
-      : Object.entries(dcfData.document.rules);
-    ruleEntriesRaw.forEach(([key, value]) => {
-      ruleEntries.push([key, value]);
-    });
-  }
-
-  // Convert DCF document to render tree for visual representation
-  // Apply filtering based on selected kind for visual view as well
-  let filteredDocument = dcfData.document;
-  if (selectedKind) {
-    // Create a filtered document containing only the selected kind
-    filteredDocument = {};
-    // Copy over top-level properties
-    if (dcfData.document.dcf_version) filteredDocument.dcf_version = dcfData.document.dcf_version;
-    if (dcfData.document.profile) filteredDocument.profile = dcfData.document.profile;
-    if (dcfData.document.renderer) filteredDocument.renderer = dcfData.document.renderer;
-
-    // Add only the entries of the selected kind
-    switch (selectedKind) {
-      case 'tokens':
-        if (tokenEntries.length > 0) {
-          filteredDocument.tokens = {};
-          tokenEntries.forEach(([key, value]) => {
-            filteredDocument.tokens[key] = value;
-          });
-        }
-        break;
-      case 'components':
-        if (componentEntries.length > 0) {
-          filteredDocument.components = {};
-          componentEntries.forEach(([key, value]) => {
-            filteredDocument.components[key] = value;
-          });
-        }
-        break;
-      case 'layouts':
-        if (layoutEntries.length > 0) {
-          filteredDocument.layouts = {};
-          layoutEntries.forEach(([key, value]) => {
-            filteredDocument.layouts[key] = value;
-          });
-        }
-        break;
-      case 'screens':
-        if (screenEntries.length > 0) {
-          filteredDocument.screens = {};
-          screenEntries.forEach(([key, value]) => {
-            filteredDocument.screens[key] = value;
-          });
-        }
-        break;
-      case 'navigation':
-        if (navigationEntries.length > 0) {
-          filteredDocument.navigation = {};
-          navigationEntries.forEach(([key, value]) => {
-            filteredDocument.navigation[key] = value;
-          });
-        }
-        break;
-      case 'flows':
-        if (flowEntries.length > 0) {
-          filteredDocument.flows = {};
-          flowEntries.forEach(([key, value]) => {
-            filteredDocument.flows[key] = value;
-          });
-        }
-        break;
-      case 'themes':
-        if (themeEntries.length > 0) {
-          filteredDocument.themes = {};
-          themeEntries.forEach(([key, value]) => {
-            filteredDocument.themes[key] = value;
-          });
-        }
-        break;
-      case 'i18n':
-        if (i18nEntries.length > 0) {
-          filteredDocument.i18n = {};
-          i18nEntries.forEach(([key, value]) => {
-            filteredDocument.i18n[key] = value;
-          });
-        }
-        break;
-      case 'rules':
-        if (ruleEntries.length > 0) {
-          filteredDocument.rules = {};
-          ruleEntries.forEach(([key, value]) => {
-            filteredDocument.rules[key] = value;
-          });
-        }
-        break;
+  // Generate render tree from filtered document
+  let renderTree = null;
+  if (filteredDocument && selectedFiles.size > 0) {
+    try {
+      renderTree = dcfToRenderTree(filteredDocument);
+    } catch (err) {
+      console.error('Error converting DCF to render tree:', err);
     }
   }
 
-  let renderTree = null;
-  try {
-    renderTree = dcfToRenderTree(filteredDocument);
-  } catch (err) {
-    console.error('Error converting DCF to render tree:', err);
-  }
-
   return (
-    <div className="preview-container">
-      <div className="header">
+    <div className="preview-app">
+      <style>{styles}</style>
+
+      <div className="preview-header">
         <h1>DCF Preview</h1>
-        <div className="view-toggle">
-          <button className="active">
-            Visual View
-          </button>
+        <div className="header-info">
+          <span>Version: {dcfData.validation?.dcf_version || 'Unknown'}</span>
+          <span>Profile: {dcfData.validation?.profile || 'Unknown'}</span>
         </div>
       </div>
 
-      <div className="dcf-info">
-        <h2>Document Information</h2>
-        <p><strong>Version:</strong> {dcfData.validation.dcf_version || 'Unknown'}</p>
-        <p><strong>Profile:</strong> {dcfData.validation.profile || 'Unknown'}</p>
+      <div className="preview-main">
+        {/* Left Panel: File Selection */}
+        <div
+          className="left-panel"
+          style={{ width: leftPanelCollapsed ? 40 : leftPanelWidth }}
+        >
+          <FilePanel
+            files={dcfData.files || []}
+            selectedFiles={selectedFiles}
+            onSelectionChange={handleSelectionChange}
+            collapsed={leftPanelCollapsed}
+            onToggleCollapse={() => setLeftPanelCollapsed(!leftPanelCollapsed)}
+          />
+        </div>
 
-        {/* Navigation for different DCF kinds */}
-        {availableKinds.length > 0 && (
-          <div className="kind-navigation">
-            <h3>Available Kinds:</h3>
-            {availableKinds.map(kind => (
-              <button
-                key={kind}
-                className={selectedKind === kind ? 'kind-button active' : 'kind-button'}
-                onClick={() => setSelectedKind(selectedKind === kind ? null : kind)}
-              >
-                {kind.charAt(0).toUpperCase() + kind.slice(1)}
-              </button>
-            ))}
-            {availableKinds.length > 0 && (
-              <button
-                className={!selectedKind ? 'kind-button active' : 'kind-button'}
-                onClick={() => setSelectedKind(null)}
-              >
-                All
-              </button>
-            )}
-          </div>
+        {/* Resizable Divider */}
+        {!leftPanelCollapsed && (
+          <ResizableDivider onResize={handleResize} />
         )}
-      </div>
 
-      <div className="dcf-content">
-        <div className="visual-preview">
-            <h2>
-              Visual Preview {selectedKind ? `- ${selectedKind.charAt(0).toUpperCase() + selectedKind.slice(1)}` : ''}
-            </h2>
-            {/* Show token preview when tokens are selected, regardless of renderTree */}
-            {selectedKind === 'tokens' && tokenEntries.length > 0 ? (
-              <>
-                <h3>Tokens Preview</h3>
-                <div className="tokens-preview">
-                  {tokenEntries.map(([name, tokenData]: [string, any]) => {
-                    // Render the actual tokens from the tokenData.tokens property
-                    if (tokenData.tokens && typeof tokenData.tokens === 'object') {
-                      return (
-                        <React.Fragment key={name}>
-                          {Object.entries(tokenData.tokens).map(([tokenName, tokenValue]: [string, any]) => (
-                            <TokenPreview key={`${name}-${tokenName}`} name={`${name}: ${tokenName}`} token={tokenValue} />
-                          ))}
-                        </React.Fragment>
-                      );
-                    }
-                    return null;
-                  })}
-                </div>
-              </>
-            ) : selectedKind === 'components' && componentEntries.length > 0 ? (
-              <>
-                <h3>Components Preview</h3>
-                <div className="components-preview">
-                  {componentEntries.map(([name, componentData]: [string, any]) => {
-                    // Render the actual components from the componentData.components property
-                    if (componentData.components && typeof componentData.components === 'object') {
-                      return (
-                        <React.Fragment key={name}>
-                          {Object.entries(componentData.components).map(([componentName, componentValue]: [string, any]) => (
-                            <ComponentPreview key={`${name}-${componentName}`} name={`${name}: ${componentName}`} component={componentValue} />
-                          ))}
-                        </React.Fragment>
-                      );
-                    }
-                    return null;
-                  })}
-                </div>
-              </>
-            ) : selectedKind === 'layouts' && layoutEntries.length > 0 ? (
-              <>
-                <h3>Layouts Preview</h3>
-                <div className="layouts-preview">
-                  {layoutEntries.map(([name, layoutData]: [string, any]) => {
-                    // Render the actual layouts from the layoutData.layouts property
-                    if (layoutData.layouts && typeof layoutData.layouts === 'object') {
-                      return (
-                        <React.Fragment key={name}>
-                          {Object.entries(layoutData.layouts).map(([layoutName, layoutValue]: [string, any]) => (
-                            <LayoutPreview key={`${name}-${layoutName}`} name={`${name}: ${layoutName}`} layout={layoutValue} />
-                          ))}
-                        </React.Fragment>
-                      );
-                    }
-                    return null;
-                  })}
-                </div>
-              </>
+        {/* Right Panel: Preview */}
+        <div className="right-panel">
+          <div className="preview-content">
+            {selectedFiles.size === 0 ? (
+              <div className="empty-selection">
+                <h2>No Files Selected</h2>
+                <p>Select one or more files from the left panel to preview.</p>
+                <p className="hint">
+                  <strong>Tip:</strong> Click to select a single file,
+                  Ctrl/Cmd+click to toggle multiple files,
+                  Shift+click to select a range.
+                </p>
+              </div>
             ) : renderTree && Object.keys(renderTree).length > 0 ? (
-              <div className="visual-container">
+              <div className="visual-preview">
                 <RenderNodeView node={renderTree} />
               </div>
             ) : (
-              // Fallback when no specific kind is selected but there's no render tree
-              <div className="no-content">
-                <p>No visual representation available.</p>
+              <div className="no-preview">
+                <h2>No Visual Preview Available</h2>
+                <p>The selected files don't contain previewable content.</p>
               </div>
             )}
+          </div>
         </div>
       </div>
     </div>
   );
 };
 
-// Component to render individual tokens
-const TokenPreview: React.FC<{ name: string; token: any }> = ({ name, token }) => {
-  if (typeof token === 'object' && token !== null && !Array.isArray(token)) {
-    return (
-      <div className="token-card">
-        <h3>{name}</h3>
-        <div className="token-children">
-          {Object.entries(token).map(([subName, subToken]) => (
-            <TokenPreview key={subName} name={`${name}.${subName}`} token={subToken} />
-          ))}
-        </div>
-      </div>
-    );
-  } else {
-    // For primitive tokens, show them with visual indicators where appropriate
-    const isColor = typeof token === 'string' && (token.startsWith('#') || token.startsWith('rgb') || token.startsWith('hsl'));
-
-    return (
-      <div className="token-card">
-        <h4>{name}: <span className="token-value">{token}</span></h4>
-        {isColor && (
-          <div className="color-preview" style={{ backgroundColor: token, width: '50px', height: '20px', border: '1px solid #ccc' }}></div>
-        )}
-      </div>
-    );
-  }
-};
-
-// Component to render individual components
-const ComponentPreview: React.FC<{ name: string; component: any }> = ({ name, component }) => {
-  return (
-    <div className="component-card">
-      <h3>{name}</h3>
-      <div className="component-properties">
-        <details>
-          <summary>Properties</summary>
-          <pre>{JSON.stringify(component, null, 2)}</pre>
-        </details>
-      </div>
-    </div>
-  );
-};
-
-// Component to render individual layouts
-const LayoutPreview: React.FC<{ name: string; layout: any }> = ({ name, layout }) => {
-  return (
-    <div className="layout-card">
-      <h3>{name}</h3>
-      <div className="layout-properties">
-        <details>
-          <summary>Properties</summary>
-          <pre>{JSON.stringify(layout, null, 2)}</pre>
-        </details>
-      </div>
-    </div>
-  );
-};
-
-// Component to render individual screens
-const ScreenPreview: React.FC<{ name: string; screen: any }> = ({ name, screen }) => {
-  return (
-    <div className="screen-card">
-      <h3>{name}</h3>
-      <div className="screen-properties">
-        <details>
-          <summary>Properties</summary>
-          <pre>{JSON.stringify(screen, null, 2)}</pre>
-        </details>
-      </div>
-    </div>
-  );
-};
-
-// Component to render individual navigation structures
-const NavigationPreview: React.FC<{ name: string; nav: any }> = ({ name, nav }) => {
-  return (
-    <div className="navigation-card">
-      <h3>{name}</h3>
-      <div className="navigation-properties">
-        <details>
-          <summary>Properties</summary>
-          <pre>{JSON.stringify(nav, null, 2)}</pre>
-        </details>
-      </div>
-    </div>
-  );
-};
-
-// Component to render individual flow definitions
-const FlowPreview: React.FC<{ name: string; flow: any }> = ({ name, flow }) => {
-  return (
-    <div className="flow-card">
-      <h3>{name}</h3>
-      <div className="flow-properties">
-        <details>
-          <summary>Properties</summary>
-          <pre>{JSON.stringify(flow, null, 2)}</pre>
-        </details>
-      </div>
-    </div>
-  );
-};
-
-// Component to render individual theme definitions
-const ThemePreview: React.FC<{ name: string; theme: any }> = ({ name, theme }) => {
-  return (
-    <div className="theme-card">
-      <h3>{name}</h3>
-      <div className="theme-properties">
-        <details>
-          <summary>Properties</summary>
-          <pre>{JSON.stringify(theme, null, 2)}</pre>
-        </details>
-      </div>
-    </div>
-  );
-};
-
-// Component to render individual i18n definitions
-const I18nPreview: React.FC<{ name: string; i18n: any }> = ({ name, i18n }) => {
-  return (
-    <div className="i18n-card">
-      <h3>{name}</h3>
-      <div className="i18n-properties">
-        <details>
-          <summary>Properties</summary>
-          <pre>{JSON.stringify(i18n, null, 2)}</pre>
-        </details>
-      </div>
-    </div>
-  );
-};
-
-// Component to render individual rules definitions
-const RulesPreview: React.FC<{ name: string; rules: any }> = ({ name, rules }) => {
-  return (
-    <div className="rules-card">
-      <h3>{name}</h3>
-      <div className="rules-properties">
-        <details>
-          <summary>Properties</summary>
-          <pre>{JSON.stringify(rules, null, 2)}</pre>
-        </details>
-      </div>
-    </div>
-  );
-};
-
-// Basic CSS styles
+// CSS styles for the two-panel layout
 const styles = `
-  .preview-container {
-    font-family: Arial, sans-serif;
-    padding: 20px;
-    max-width: 1200px;
-    margin: 0 auto;
+  * {
+    box-sizing: border-box;
   }
 
-  .header {
+  .preview-app {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .preview-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 20px;
+    padding: 12px 20px;
+    background: #1a1a2e;
+    color: white;
+    border-bottom: 1px solid #333;
   }
 
-  .view-toggle button {
-    margin-right: 10px;
-    padding: 8px 16px;
+  .preview-header h1 {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 600;
+  }
+
+  .header-info {
+    display: flex;
+    gap: 20px;
+    font-size: 13px;
+    color: #aaa;
+  }
+
+  .preview-main {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+  }
+
+  /* Left Panel */
+  .left-panel {
+    flex-shrink: 0;
+    background: #f5f5f5;
+    border-right: 1px solid #ddd;
+    overflow: hidden;
+    transition: width 0.2s ease;
+  }
+
+  .file-panel {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+  }
+
+  .file-panel.collapsed {
+    width: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    padding-top: 10px;
+  }
+
+  .file-panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    background: #e8e8e8;
+    border-bottom: 1px solid #ddd;
+  }
+
+  .file-panel-header h3 {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 600;
+  }
+
+  .collapse-button {
+    background: none;
     border: 1px solid #ccc;
-    background-color: #f0f0f0;
+    border-radius: 4px;
+    padding: 4px 8px;
+    cursor: pointer;
+    font-size: 14px;
+    color: #666;
+  }
+
+  .collapse-button:hover {
+    background: #ddd;
+  }
+
+  .file-panel-actions {
+    display: flex;
+    gap: 8px;
+    padding: 8px 12px;
+    border-bottom: 1px solid #ddd;
+  }
+
+  .action-button {
+    flex: 1;
+    padding: 6px 10px;
+    font-size: 12px;
+    background: white;
+    border: 1px solid #ccc;
+    border-radius: 4px;
     cursor: pointer;
   }
 
-  .view-toggle button.active {
-    background-color: #007acc;
-    color: white;
+  .action-button:hover {
+    background: #f0f0f0;
   }
 
-  .kind-navigation {
-    margin-top: 10px;
+  .file-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 8px 0;
   }
 
-  .kind-navigation h3 {
-    margin-bottom: 8px;
-  }
-
-  .kind-button {
-    margin-right: 8px;
-    margin-bottom: 8px;
-    padding: 6px 12px;
-    border: 1px solid #ccc;
-    background-color: #f0f0f0;
+  .file-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 12px;
     cursor: pointer;
-    border-radius: 4px;
+    border-bottom: 1px solid #eee;
   }
 
-  .kind-button.active {
-    background-color: #007acc;
+  .file-item:hover {
+    background: #e8f4fc;
+  }
+
+  .file-item.selected {
+    background: #cce5ff;
+    border-left: 3px solid #007acc;
+  }
+
+  .file-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    overflow: hidden;
+    flex: 1;
+    min-width: 0;
+  }
+
+  .file-path {
+    font-size: 13px;
+    color: #333;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .file-name {
+    font-size: 11px;
+    color: #666;
+  }
+
+  .kind-badge {
+    font-size: 10px;
     color: white;
+    padding: 2px 6px;
+    border-radius: 3px;
+    text-transform: uppercase;
+    font-weight: 600;
+    flex-shrink: 0;
+    margin-left: 8px;
   }
 
-  .visual-container {
-    border: 1px solid #ddd;
-    border-radius: 4px;
+  .file-panel-footer {
+    padding: 8px 12px;
+    border-top: 1px solid #ddd;
+    background: #e8e8e8;
+    font-size: 12px;
+    color: #666;
+  }
+
+  /* Resizable Divider */
+  .resizable-divider {
+    width: 5px;
+    background: #ddd;
+    cursor: col-resize;
+    flex-shrink: 0;
+  }
+
+  .resizable-divider:hover {
+    background: #007acc;
+  }
+
+  /* Right Panel */
+  .right-panel {
+    flex: 1;
+    overflow: auto;
+    background: white;
+  }
+
+  .preview-content {
     padding: 20px;
-    min-height: 200px;
-    background-color: #fafafa;
+    min-height: 100%;
+  }
+
+  .visual-preview {
+    background: #fafafa;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 20px;
+    min-height: 400px;
+  }
+
+  .empty-selection, .no-preview {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 400px;
+    text-align: center;
+    color: #666;
+  }
+
+  .empty-selection h2, .no-preview h2 {
+    margin-bottom: 12px;
+    color: #333;
+  }
+
+  .empty-selection .hint {
+    margin-top: 20px;
+    padding: 12px 20px;
+    background: #f0f8ff;
+    border-radius: 6px;
+    font-size: 13px;
+    max-width: 400px;
+  }
+
+  /* Loading and Error states */
+  .loading-container, .error-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    text-align: center;
   }
 
   .error-message {
     background-color: #ffebee;
     border: 1px solid #f44336;
-    border-radius: 4px;
-    padding: 16px;
-    margin: 16px 0;
+    border-radius: 8px;
+    padding: 20px;
+    margin: 20px;
+    max-width: 600px;
   }
 
-  .component-card, .token-card, .layout-card, .screen-card, .navigation-card, .flow-card, .theme-card, .i18n-card, .rules-card {
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    padding: 16px;
-    margin: 8px 0;
-    background-color: #f9f9f9;
-  }
-
-  .components-preview, .tokens-preview, .layouts-preview, .screens-preview, .navigation-preview, .flows-preview, .themes-preview, .i18n-preview, .rules-preview {
-    margin: 16px 0;
-  }
-
-  .token-children {
-    margin-left: 20px;
-    padding-left: 10px;
-    border-left: 1px solid #eee;
-  }
-
-  .color-preview {
-    margin-top: 5px;
-  }
-
-  .token-value {
-    font-family: monospace;
-    background-color: #e8f5e9;
-    padding: 2px 4px;
-    border-radius: 3px;
+  .error-message h2 {
+    color: #c62828;
+    margin-top: 0;
   }
 
   details {
-    margin: 8px 0;
+    margin-top: 16px;
+    text-align: left;
   }
 
   summary {
     cursor: pointer;
     padding: 8px;
     background-color: #f0f0f0;
-    border-radius: 3px;
+    border-radius: 4px;
     font-weight: bold;
   }
 
@@ -681,15 +739,9 @@ const styles = `
     padding: 12px;
     overflow-x: auto;
     font-size: 12px;
-  }
-
-  .no-content {
-    padding: 20px;
-    text-align: center;
-    color: #666;
-    font-style: italic;
+    text-align: left;
   }
 `;
 
-// Export the PreviewApp component for use in the main entry point
+// Export the PreviewApp component
 export { PreviewApp };
