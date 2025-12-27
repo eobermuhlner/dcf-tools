@@ -44,9 +44,9 @@ interface DCFPreviewData {
   files: FileInfo[];       // List of loaded files with metadata
 }
 
-// Previewable kinds according to the specification
-const PREVIEWABLE_KINDS = ['component', 'layout', 'screen', 'navigation', 'flow'];
-const SUPPORTING_KINDS = ['tokens', 'theme', 'theming', 'i18n', 'rules'];
+// Previewable kinds according to the specification (using plural category names)
+const PREVIEWABLE_KINDS = ['components', 'layouts', 'screens', 'navigation', 'flows'];
+const SUPPORTING_KINDS = ['tokens', 'themes', 'theming', 'i18n', 'rules'];
 
 // Function to discover DCF files from multiple path types
 async function discoverDCFFiles(paths: string[]): Promise<string[]> {
@@ -82,6 +82,32 @@ async function discoverDCFFiles(paths: string[]): Promise<string[]> {
   });
 }
 
+// Mapping from singular kind to plural category name
+const KIND_TO_CATEGORY: Record<string, string> = {
+  'token': 'tokens',
+  'tokens': 'tokens',
+  'component': 'components',
+  'components': 'components',
+  'layout': 'layouts',
+  'layouts': 'layouts',
+  'screen': 'screens',
+  'screens': 'screens',
+  'navigation': 'navigation',
+  'flow': 'flows',
+  'flows': 'flows',
+  'theme': 'themes',
+  'themes': 'themes',
+  'theming': 'theming',
+  'i18n': 'i18n',
+  'rule': 'rules',
+  'rules': 'rules',
+};
+
+// Helper function to normalize kind to plural category
+function normalizeKindToCategory(kind: string): string {
+  return KIND_TO_CATEGORY[kind] || kind;
+}
+
 // Helper function to extract element keys from a document in dot-notation format
 function extractElementKeys(doc: any, filePath: string): string[] {
   const elements: string[] = [];
@@ -90,7 +116,8 @@ function extractElementKeys(doc: any, filePath: string): string[] {
   // If document has a kind property (single entity file)
   if (doc.kind) {
     const name = doc.name || path.basename(filePath, path.extname(filePath));
-    elements.push(`${doc.kind}.${name}`);
+    const category = normalizeKindToCategory(doc.kind);
+    elements.push(`${category}.${name}`);
     return elements;
   }
 
@@ -161,8 +188,9 @@ async function loadDCFData(filePaths: string[], options: PreviewOptions): Promis
         });
       }
 
-      // Check if kind is previewable
-      if (content.kind && !PREVIEWABLE_KINDS.includes(content.kind) && !SUPPORTING_KINDS.includes(content.kind)) {
+      // Check if kind is previewable (normalize to plural category for comparison)
+      const normalizedKind = normalizeKindToCategory(content.kind);
+      if (content.kind && !PREVIEWABLE_KINDS.includes(normalizedKind) && !SUPPORTING_KINDS.includes(normalizedKind)) {
         if (!options.allowInvalid && options.profile === 'strict') {
           // Only fail in strict mode
           validation.ok = false;
@@ -227,17 +255,20 @@ async function loadDCFData(filePaths: string[], options: PreviewOptions): Promis
   for (const { content: doc, filePath } of allDocuments) {
     // If document has a kind property, group by kind (for individual components/tokens)
     if (doc.kind) {
-      if (!combinedDocument[doc.kind]) {
-        combinedDocument[doc.kind] = {};
+      // Normalize singular kind to plural category (e.g., 'component' -> 'components')
+      const category = normalizeKindToCategory(doc.kind);
+
+      if (!combinedDocument[category]) {
+        combinedDocument[category] = {};
       }
 
       // If it's a named entity (like a component), store by name
       if (doc.name) {
-        combinedDocument[doc.kind][doc.name] = { ...doc, _sourceFile: filePath };
+        combinedDocument[category][doc.name] = { ...doc, _sourceFile: filePath };
       } else {
         // If no name, generate a unique key based on file path
         const fileName = path.basename(filePath, path.extname(filePath));
-        combinedDocument[doc.kind][fileName] = { ...doc, _sourceFile: filePath };
+        combinedDocument[category][fileName] = { ...doc, _sourceFile: filePath };
       }
     } else {
       // If document doesn't have a kind, it might be a full DCF document with tokens/components/layouts
