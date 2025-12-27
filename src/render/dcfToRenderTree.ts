@@ -298,7 +298,8 @@ function createRenderNode(obj: any, path: string[], tokens: any): RenderNode {
   } else if (isDCFComponent) {
     // This is a DCF component definition - create a visual representation
     // Even if it doesn't have explicit content, it likely has layout/styling information
-    const componentName = obj.name || (path.length > 0 ? path[path.length - 1] : 'component');
+    // Check for 'component' property (used in screen content) as well as 'name'
+    const componentName = obj.name || obj.component || (path.length > 0 ? path[path.length - 1] : 'component');
 
     // Create a frame that represents the component visually
     return {
