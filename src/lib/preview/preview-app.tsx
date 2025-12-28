@@ -383,12 +383,23 @@ const PreviewApp: React.FC = () => {
   );
 
   // Generate render tree from filtered document
-  // Pass all components from the full document for component reference resolution
+  // Pass all components and i18n strings from the full document for reference resolution
   let renderTree = null;
   if (filteredDocument && selectedFile) {
     try {
       const allComponents = dcfData.document?.components || dcfData.document?.component || {};
-      renderTree = dcfToRenderTree(filteredDocument, allComponents);
+      // Extract i18n strings from the first i18n file
+      let allStrings: Record<string, string> = {};
+      const i18n = dcfData.document?.i18n;
+      if (i18n && typeof i18n === 'object') {
+        for (const [, i18nData] of Object.entries(i18n)) {
+          if (i18nData && typeof i18nData === 'object' && (i18nData as any).strings) {
+            allStrings = (i18nData as any).strings;
+            break;
+          }
+        }
+      }
+      renderTree = dcfToRenderTree(filteredDocument, allComponents, allStrings);
     } catch (err) {
       console.error('Error converting DCF to render tree:', err);
     }

@@ -247,7 +247,8 @@ function renderResolvedComponent(
   props: any,
   path: string[],
   tokens: any,
-  components?: any
+  components?: any,
+  strings?: any
 ): RenderNode {
   const id = generateId(path);
 
@@ -261,10 +262,10 @@ function renderResolvedComponent(
     for (let i = 0; i < content.length; i++) {
       const item = content[i];
       if (item && typeof item === 'object') {
-        // Apply props to the content item
-        const resolvedItem = applyPropsToContent(item, props);
+        // Apply props and strings to the content item
+        const resolvedItem = applyPropsToContent(item, props, strings);
         const childPath = [...path, componentName, i.toString()];
-        childNodes.push(createRenderNode(resolvedItem, childPath, tokens, components));
+        childNodes.push(createRenderNode(resolvedItem, childPath, tokens, components, strings));
       }
     }
 
@@ -340,25 +341,37 @@ function renderResolvedComponent(
   };
 }
 
-// Apply props to a content item, resolving prop references like "$props.title"
-function applyPropsToContent(item: any, props: any): any {
+// Apply props and strings to a content item, resolving references like "$props.title" and "$strings.home.hero.title"
+function applyPropsToContent(item: any, props: any, strings?: any): any {
   if (typeof item === 'string') {
     // Check if this is a prop reference
     if (item.startsWith('$props.')) {
       const propPath = item.slice(7); // Remove '$props.'
-      return getNestedValue(props, propPath) ?? item;
+      const resolved = getNestedValue(props, propPath);
+      // If the resolved value is also a string reference, resolve it recursively
+      if (typeof resolved === 'string' && (resolved.startsWith('$props.') || resolved.startsWith('$strings.'))) {
+        return applyPropsToContent(resolved, props, strings);
+      }
+      return resolved ?? item;
+    }
+    // Check if this is a strings reference
+    if (item.startsWith('$strings.') && strings) {
+      const stringKey = item.slice(9); // Remove '$strings.'
+      // i18n strings use dot notation as keys, e.g., "home.hero.title"
+      const resolved = strings[stringKey];
+      return resolved ?? item;
     }
     return item;
   }
 
   if (Array.isArray(item)) {
-    return item.map(i => applyPropsToContent(i, props));
+    return item.map(i => applyPropsToContent(i, props, strings));
   }
 
   if (typeof item === 'object' && item !== null) {
     const resolved: any = {};
     for (const [key, value] of Object.entries(item)) {
-      resolved[key] = applyPropsToContent(value, props);
+      resolved[key] = applyPropsToContent(value, props, strings);
     }
     return resolved;
   }
@@ -380,7 +393,7 @@ function getNestedValue(obj: any, path: string): any {
   return current;
 }
 
-function createRenderNode(obj: any, path: string[], tokens: any, components?: any): RenderNode {
+function createRenderNode(obj: any, path: string[], tokens: any, components?: any, strings?: any): RenderNode {
   // Generate a stable ID based on the path
   const id = generateId(path);
 
@@ -391,7 +404,7 @@ function createRenderNode(obj: any, path: string[], tokens: any, components?: an
 
     if (componentDef) {
       // Found the component definition - render it with the provided props
-      return renderResolvedComponent(componentDef, componentName, obj.props || {}, path, tokens, components);
+      return renderResolvedComponent(componentDef, componentName, obj.props || {}, path, tokens, components, strings);
     }
     // Component not found - fall through to show placeholder
   }
@@ -434,7 +447,7 @@ function createRenderNode(obj: any, path: string[], tokens: any, components?: an
       children.forEach((child, index) => {
         if (child && typeof child === 'object') {
           const childPath = [...path, index.toString()];
-          childNodes.push(createRenderNode(child, childPath, tokens, components));
+          childNodes.push(createRenderNode(child, childPath, tokens, components, strings));
         }
       });
     }
@@ -496,7 +509,7 @@ function createRenderNode(obj: any, path: string[], tokens: any, components?: an
   }
 }
 
-export function dcfToRenderTree(dcfDocument: any, allComponents?: any): RenderNode {
+export function dcfToRenderTree(dcfDocument: any, allComponents?: any, allStrings?: any): RenderNode {
   if (!dcfDocument || typeof dcfDocument !== 'object') {
     return {
       kind: "unknown",
@@ -553,6 +566,21 @@ export function dcfToRenderTree(dcfDocument: any, allComponents?: any): RenderNo
   // Extract components for resolution (from document or passed in)
   const components = allComponents || dcfDocument.components || dcfDocument.component || {};
 
+  // Extract i18n strings for resolution (from document or passed in)
+  let strings = allStrings || {};
+  if (!allStrings) {
+    const i18n = dcfDocument.i18n;
+    if (i18n && typeof i18n === 'object') {
+      // i18n is organized by file/locale name, extract strings from the first one
+      for (const [, i18nData] of Object.entries(i18n)) {
+        if (i18nData && typeof i18nData === 'object' && (i18nData as any).strings) {
+          strings = (i18nData as any).strings;
+          break;
+        }
+      }
+    }
+  }
+
   // First, try to find screens to render (highest priority)
   const screens = dcfDocument.screens || dcfDocument.screen;
   if (screens && typeof screens === 'object') {
@@ -569,7 +597,7 @@ export function dcfToRenderTree(dcfDocument: any, allComponents?: any): RenderNo
           // If screen has content, use it, otherwise create a default structure
           content: firstScreen.content || []
         };
-        return createRenderNode(screenObj, ['root', 'screens', firstScreenName], tokens, components);
+        return createRenderNode(screenObj, ['root', 'screens', firstScreenName], tokens, components, strings);
       }
     }
   }
@@ -608,7 +636,7 @@ export function dcfToRenderTree(dcfDocument: any, allComponents?: any): RenderNo
       const [firstLayoutName, firstLayout] = layoutEntries[0]; // Render the first layout
       if (firstLayout && typeof firstLayout === 'object') {
         const layoutObj = { ...firstLayout, name: firstLayoutName, type: 'layout' };
-        return createRenderNode(layoutObj, ['root', 'layouts', firstLayoutName], tokens, components);
+        return createRenderNode(layoutObj, ['root', 'layouts', firstLayoutName], tokens, components, strings);
       }
     }
   }
