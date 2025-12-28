@@ -667,17 +667,34 @@ export async function startPreviewServer(paths: string[], options: PreviewOption
   });
 
   // Create Vite server in middleware mode
-  // Use the project root directory instead of current working directory
-  // Find project root by looking for package.json
-  let currentDir = process.cwd();
-  // Walk up the directory tree to find package.json
-  while (currentDir !== path.dirname(currentDir)) {
-    if (fs.existsSync(path.join(currentDir, 'package.json'))) {
-      break;
-    }
-    currentDir = path.dirname(currentDir);
+  // Use the dcf-tools package root (where src/lib/preview exists), not the user's cwd
+  // Find dcf-tools root by walking up from this script's location
+  // Use __dirname for CJS or derive from import.meta.url for ESM
+  let scriptDir: string;
+  try {
+    // ESM: use import.meta.url
+    scriptDir = path.dirname(fileURLToPath(import.meta.url));
+  } catch {
+    // CJS: __dirname is available globally (injected by tsup/node)
+    scriptDir = typeof __dirname !== 'undefined' ? __dirname : process.cwd();
   }
-  const projectRoot = currentDir;
+  let dcfToolsRoot = scriptDir;
+  // Walk up from dist/lib/preview or src/lib/preview to find package.json with name "dcf-tools"
+  while (dcfToolsRoot !== path.dirname(dcfToolsRoot)) {
+    const pkgPath = path.join(dcfToolsRoot, 'package.json');
+    if (fs.existsSync(pkgPath)) {
+      try {
+        const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf-8'));
+        if (pkg.name === 'dcf-tools') {
+          break;
+        }
+      } catch {
+        // Continue searching
+      }
+    }
+    dcfToolsRoot = path.dirname(dcfToolsRoot);
+  }
+  const projectRoot = dcfToolsRoot;
   const vite = await (await import('vite')).createServer({
     configFile: false, // Don't load vite.config.ts to avoid react-refresh plugin
     server: {
