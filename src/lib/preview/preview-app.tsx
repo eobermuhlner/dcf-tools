@@ -69,50 +69,16 @@ function sortFilesByKindHierarchy(files: FileInfo[]): FileInfo[] {
 // File Panel Component
 const FilePanel: React.FC<{
   files: FileInfo[];
-  selectedFiles: Set<string>;
-  onSelectionChange: (newSelection: Set<string>) => void;
+  selectedFile: string | null;
+  onSelectionChange: (file: string | null) => void;
   collapsed: boolean;
   onToggleCollapse: () => void;
-}> = ({ files, selectedFiles, onSelectionChange, collapsed, onToggleCollapse }) => {
-  const [lastClickedIndex, setLastClickedIndex] = useState<number | null>(null);
-
+}> = ({ files, selectedFile, onSelectionChange, collapsed, onToggleCollapse }) => {
   // Sort files by kind hierarchy (screens first, tokens last)
   const sortedFiles = sortFilesByKindHierarchy(files);
 
-  const handleFileClick = (file: FileInfo, index: number, event: React.MouseEvent) => {
-    const newSelection = new Set(selectedFiles);
-
-    if (event.shiftKey && lastClickedIndex !== null) {
-      // Shift+click: range selection
-      const start = Math.min(lastClickedIndex, index);
-      const end = Math.max(lastClickedIndex, index);
-      for (let i = start; i <= end; i++) {
-        newSelection.add(sortedFiles[i].path);
-      }
-    } else if (event.ctrlKey || event.metaKey) {
-      // Ctrl/Cmd+click: toggle selection
-      if (newSelection.has(file.path)) {
-        newSelection.delete(file.path);
-      } else {
-        newSelection.add(file.path);
-      }
-    } else {
-      // Regular click: single selection
-      newSelection.clear();
-      newSelection.add(file.path);
-    }
-
-    setLastClickedIndex(index);
-    onSelectionChange(newSelection);
-  };
-
-  const handleSelectAll = () => {
-    const newSelection = new Set(files.map(f => f.path));
-    onSelectionChange(newSelection);
-  };
-
-  const handleDeselectAll = () => {
-    onSelectionChange(new Set());
+  const handleFileClick = (file: FileInfo) => {
+    onSelectionChange(file.path);
   };
 
   if (collapsed) {
@@ -133,16 +99,12 @@ const FilePanel: React.FC<{
           &laquo;
         </button>
       </div>
-      <div className="file-panel-actions">
-        <button onClick={handleSelectAll} className="action-button">Select All</button>
-        <button onClick={handleDeselectAll} className="action-button">Deselect All</button>
-      </div>
       <div className="file-list">
-        {sortedFiles.map((file, index) => (
+        {sortedFiles.map((file) => (
           <div
             key={file.path}
-            className={`file-item ${selectedFiles.has(file.path) ? 'selected' : ''}`}
-            onClick={(e) => handleFileClick(file, index, e)}
+            className={`file-item ${selectedFile === file.path ? 'selected' : ''}`}
+            onClick={() => handleFileClick(file)}
           >
             <div className="file-info">
               <span className="file-path" title={file.path}>{file.relativePath}</span>
@@ -160,7 +122,7 @@ const FilePanel: React.FC<{
         ))}
       </div>
       <div className="file-panel-footer">
-        <small>{selectedFiles.size} of {files.length} selected</small>
+        <small>1 of {files.length} files</small>
       </div>
     </div>
   );
@@ -206,35 +168,32 @@ const ResizableDivider: React.FC<{
   return <div className="resizable-divider" onMouseDown={handleMouseDown} />;
 };
 
-// Helper function to filter document to only include elements from selected files
-function filterDocumentByFiles(document: any, files: FileInfo[], selectedFiles: Set<string>): any {
-  if (!document || selectedFiles.size === 0) {
+// Helper function to filter document to only include elements from selected file
+function filterDocumentByFile(document: any, files: FileInfo[], selectedFile: string | null): any {
+  if (!document || !selectedFile) {
     return null;
   }
 
-  // If all files are selected, return the full document
-  if (selectedFiles.size === files.length) {
-    return document;
+  // Find the selected file info
+  const fileInfo = files.find(f => f.path === selectedFile);
+  if (!fileInfo) {
+    return null;
   }
 
-  // Build a set of element keys from selected files
-  const selectedElements = new Set<string>();
-  for (const file of files) {
-    if (selectedFiles.has(file.path)) {
-      for (const element of file.elements) {
-        selectedElements.add(element);
-      }
-    }
-  }
+  // Build a set of element keys from the selected file
+  const selectedElements = new Set<string>(fileInfo.elements);
+  const isTokensFile = fileInfo.kind === 'tokens' || fileInfo.kind === 'token';
 
-  // Create a filtered document with only elements from selected files
-  // but keep the full tokens for resolution
+  // Create a filtered document with only elements from the selected file
   const filtered: any = {
     dcf_version: document.dcf_version,
     profile: document.profile,
-    // Keep full tokens for reference resolution
-    tokens: document.tokens,
   };
+
+  // Only include tokens if a tokens file is selected
+  if (isTokensFile && document.tokens) {
+    filtered.tokens = document.tokens;
+  }
 
   const categories = ['components', 'layouts', 'screens', 'navigation', 'flows', 'themes', 'i18n', 'rules'];
 
@@ -256,34 +215,35 @@ function filterDocumentByFiles(document: any, files: FileInfo[], selectedFiles: 
   return filtered;
 }
 
+// Tab type for the preview panel
+type PreviewTab = 'visual' | 'source';
+
 const PreviewApp: React.FC = () => {
   const [dcfData, setDcfData] = useState<DCFData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [selectedFiles, setSelectedFiles] = useState<Set<string>>(new Set());
+  const [selectedFile, setSelectedFile] = useState<string | null>(null);
   const [leftPanelWidth, setLeftPanelWidth] = useState(250);
   const [leftPanelCollapsed, setLeftPanelCollapsed] = useState(false);
   const [previousFilePaths, setPreviousFilePaths] = useState<Set<string>>(new Set());
+  const [activeTab, setActiveTab] = useState<PreviewTab>('visual');
 
   // Initialize selection when data loads
   useEffect(() => {
-    if (dcfData?.files) {
+    if (dcfData?.files && dcfData.files.length > 0) {
       const currentPaths = new Set(dcfData.files.map(f => f.path));
 
       // Check if this is first load or files changed
       if (previousFilePaths.size === 0) {
-        // First load: select all files
-        setSelectedFiles(currentPaths);
+        // First load: select the first file (sorted by kind hierarchy)
+        const sortedFiles = sortFilesByKindHierarchy(dcfData.files);
+        setSelectedFile(sortedFiles[0].path);
       } else {
-        // Subsequent load: preserve selection for existing files, don't auto-select new files
-        const newSelection = new Set<string>();
-        for (const path of selectedFiles) {
-          if (currentPaths.has(path)) {
-            newSelection.add(path);
-          }
+        // Subsequent load: preserve selection if file still exists
+        if (selectedFile && !currentPaths.has(selectedFile)) {
+          // Selected file was removed, clear selection
+          setSelectedFile(null);
         }
-        // If all selected files were removed, keep empty selection
-        setSelectedFiles(newSelection);
       }
 
       setPreviousFilePaths(currentPaths);
@@ -352,8 +312,8 @@ const PreviewApp: React.FC = () => {
     });
   }, []);
 
-  const handleSelectionChange = useCallback((newSelection: Set<string>) => {
-    setSelectedFiles(newSelection);
+  const handleSelectionChange = useCallback((file: string | null) => {
+    setSelectedFile(file);
   }, []);
 
   if (loading) {
@@ -415,16 +375,16 @@ const PreviewApp: React.FC = () => {
     );
   }
 
-  // Filter document based on selected files
-  const filteredDocument = filterDocumentByFiles(
+  // Filter document based on selected file
+  const filteredDocument = filterDocumentByFile(
     dcfData.document,
     dcfData.files || [],
-    selectedFiles
+    selectedFile
   );
 
   // Generate render tree from filtered document
   let renderTree = null;
-  if (filteredDocument && selectedFiles.size > 0) {
+  if (filteredDocument && selectedFile) {
     try {
       renderTree = dcfToRenderTree(filteredDocument);
     } catch (err) {
@@ -452,7 +412,7 @@ const PreviewApp: React.FC = () => {
         >
           <FilePanel
             files={dcfData.files || []}
-            selectedFiles={selectedFiles}
+            selectedFile={selectedFile}
             onSelectionChange={handleSelectionChange}
             collapsed={leftPanelCollapsed}
             onToggleCollapse={() => setLeftPanelCollapsed(!leftPanelCollapsed)}
@@ -466,25 +426,42 @@ const PreviewApp: React.FC = () => {
 
         {/* Right Panel: Preview */}
         <div className="right-panel">
+          {/* Tab Bar */}
+          <div className="tab-bar">
+            <button
+              className={`tab-button ${activeTab === 'visual' ? 'active' : ''}`}
+              onClick={() => setActiveTab('visual')}
+            >
+              Visual
+            </button>
+            <button
+              className={`tab-button ${activeTab === 'source' ? 'active' : ''}`}
+              onClick={() => setActiveTab('source')}
+            >
+              Source
+            </button>
+          </div>
+
           <div className="preview-content">
-            {selectedFiles.size === 0 ? (
+            {!selectedFile ? (
               <div className="empty-selection">
-                <h2>No Files Selected</h2>
-                <p>Select one or more files from the left panel to preview.</p>
-                <p className="hint">
-                  <strong>Tip:</strong> Click to select a single file,
-                  Ctrl/Cmd+click to toggle multiple files,
-                  Shift+click to select a range.
-                </p>
+                <h2>No File Selected</h2>
+                <p>Select a file from the left panel to preview its contents.</p>
               </div>
-            ) : renderTree && Object.keys(renderTree).length > 0 ? (
-              <div className="visual-preview">
-                <RenderNodeView node={renderTree} />
-              </div>
+            ) : activeTab === 'visual' ? (
+              renderTree && Object.keys(renderTree).length > 0 ? (
+                <div className="visual-preview">
+                  <RenderNodeView node={renderTree} />
+                </div>
+              ) : (
+                <div className="no-preview">
+                  <h2>No Visual Preview Available</h2>
+                  <p>The selected files don't contain previewable content.</p>
+                </div>
+              )
             ) : (
-              <div className="no-preview">
-                <h2>No Visual Preview Available</h2>
-                <p>The selected files don't contain previewable content.</p>
+              <div className="source-view">
+                <pre className="source-code">{JSON.stringify(filteredDocument, null, 2)}</pre>
               </div>
             )}
           </div>
@@ -589,27 +566,6 @@ const styles = `
     background: #ddd;
   }
 
-  .file-panel-actions {
-    display: flex;
-    gap: 8px;
-    padding: 8px 12px;
-    border-bottom: 1px solid #ddd;
-  }
-
-  .action-button {
-    flex: 1;
-    padding: 6px 10px;
-    font-size: 12px;
-    background: white;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    cursor: pointer;
-  }
-
-  .action-button:hover {
-    background: #f0f0f0;
-  }
-
   .file-list {
     flex: 1;
     overflow-y: auto;
@@ -690,13 +646,49 @@ const styles = `
   /* Right Panel */
   .right-panel {
     flex: 1;
-    overflow: auto;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    background: white;
+  }
+
+  /* Tab Bar */
+  .tab-bar {
+    display: flex;
+    gap: 0;
+    background: #f5f5f5;
+    border-bottom: 1px solid #ddd;
+    padding: 0 12px;
+    flex-shrink: 0;
+  }
+
+  .tab-button {
+    padding: 10px 20px;
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid transparent;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    color: #666;
+    transition: all 0.2s ease;
+  }
+
+  .tab-button:hover {
+    color: #333;
+    background: #e8e8e8;
+  }
+
+  .tab-button.active {
+    color: #007acc;
+    border-bottom-color: #007acc;
     background: white;
   }
 
   .preview-content {
     padding: 20px;
-    min-height: 100%;
+    flex: 1;
+    overflow: auto;
   }
 
   .visual-preview {
@@ -705,6 +697,25 @@ const styles = `
     border-radius: 8px;
     padding: 20px;
     min-height: 400px;
+  }
+
+  .source-view {
+    background: #1e1e1e;
+    border-radius: 8px;
+    overflow: auto;
+  }
+
+  .source-code {
+    margin: 0;
+    padding: 16px;
+    background: transparent;
+    border: none;
+    color: #d4d4d4;
+    font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+    font-size: 13px;
+    line-height: 1.5;
+    white-space: pre;
+    overflow: visible;
   }
 
   .empty-selection, .no-preview {
@@ -720,15 +731,6 @@ const styles = `
   .empty-selection h2, .no-preview h2 {
     margin-bottom: 12px;
     color: #333;
-  }
-
-  .empty-selection .hint {
-    margin-top: 20px;
-    padding: 12px 20px;
-    background: #f0f8ff;
-    border-radius: 6px;
-    font-size: 13px;
-    max-width: 400px;
   }
 
   /* Loading and Error states */
