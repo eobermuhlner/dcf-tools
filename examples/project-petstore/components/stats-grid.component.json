@@ -1,0 +1,58 @@
+{
+  "dcf_version": "1.0.0",
+  "kind": "component",
+  "profile": "standard",
+  "name": "StatsGrid",
+  "props": {
+    "stats": { "type": "object" }
+  },
+  "content": [
+    {
+      "type": "frame",
+      "layout": { "direction": "row", "gap": 16, "wrap": true },
+      "style": { "padding": 16 },
+      "children": [
+        {
+          "type": "frame",
+          "style": { "flex": 1, "minWidth": 200, "padding": 20, "backgroundColor": "{color.primary}", "borderRadius": 12 },
+          "layout": { "direction": "column", "gap": 8 },
+          "children": [
+            { "type": "text", "text": "Total Sales", "style": { "color": "{color.text-inverse}", "fontSize": 14 } },
+            { "type": "text", "text": "$24,589", "style": { "color": "{color.text-inverse}", "fontSize": 28, "fontWeight": "bold" } },
+            { "type": "text", "text": "+12.5% from last month", "style": { "color": "{color.text-inverse}", "fontSize": 12 } }
+          ]
+        },
+        {
+          "type": "frame",
+          "style": { "flex": 1, "minWidth": 200, "padding": 20, "backgroundColor": "{color.secondary}", "borderRadius": 12 },
+          "layout": { "direction": "column", "gap": 8 },
+          "children": [
+            { "type": "text", "text": "Orders", "style": { "color": "{color.text-inverse}", "fontSize": 14 } },
+            { "type": "text", "text": "156", "style": { "color": "{color.text-inverse}", "fontSize": 28, "fontWeight": "bold" } },
+            { "type": "text", "text": "+8 new today", "style": { "color": "{color.text-inverse}", "fontSize": 12 } }
+          ]
+        },
+        {
+          "type": "frame",
+          "style": { "flex": 1, "minWidth": 200, "padding": 20, "backgroundColor": "{color.success}", "borderRadius": 12 },
+          "layout": { "direction": "column", "gap": 8 },
+          "children": [
+            { "type": "text", "text": "Pets Available", "style": { "color": "{color.text-inverse}", "fontSize": 14 } },
+            { "type": "text", "text": "89", "style": { "color": "{color.text-inverse}", "fontSize": 28, "fontWeight": "bold" } },
+            { "type": "text", "text": "12 categories", "style": { "color": "{color.text-inverse}", "fontSize": 12 } }
+          ]
+        },
+        {
+          "type": "frame",
+          "style": { "flex": 1, "minWidth": 200, "padding": 20, "backgroundColor": "{color.info}", "borderRadius": 12 },
+          "layout": { "direction": "column", "gap": 8 },
+          "children": [
+            { "type": "text", "text": "Customers", "style": { "color": "{color.text-inverse}", "fontSize": 14 } },
+            { "type": "text", "text": "1,247", "style": { "color": "{color.text-inverse}", "fontSize": 28, "fontWeight": "bold" } },
+            { "type": "text", "text": "+23 this week", "style": { "color": "{color.text-inverse}", "fontSize": 12 } }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -383,10 +383,12 @@ const PreviewApp: React.FC = () => {
   );
 
   // Generate render tree from filtered document
+  // Pass all components from the full document for component reference resolution
   let renderTree = null;
   if (filteredDocument && selectedFile) {
     try {
-      renderTree = dcfToRenderTree(filteredDocument);
+      const allComponents = dcfData.document?.components || dcfData.document?.component || {};
+      renderTree = dcfToRenderTree(filteredDocument, allComponents);
     } catch (err) {
       console.error('Error converting DCF to render tree:', err);
     }

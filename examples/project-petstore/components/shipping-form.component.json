@@ -1,0 +1,94 @@
+{
+  "dcf_version": "1.0.0",
+  "kind": "component",
+  "profile": "standard",
+  "name": "ShippingForm",
+  "props": {},
+  "content": [
+    {
+      "type": "frame",
+      "layout": { "direction": "column", "gap": 16 },
+      "style": { "padding": 16, "backgroundColor": "{color.surface}", "borderRadius": 8 },
+      "children": [
+        { "type": "text", "text": "Shipping Address", "style": { "fontSize": 18, "fontWeight": "bold", "color": "{color.text-primary}" } },
+        {
+          "type": "frame",
+          "layout": { "direction": "row", "gap": 16 },
+          "children": [
+            {
+              "type": "frame",
+              "layout": { "direction": "column", "gap": 4 },
+              "style": { "flex": 1 },
+              "children": [
+                { "type": "text", "text": "First Name", "style": { "fontSize": 12, "color": "{color.text-secondary}" } },
+                { "type": "frame", "style": { "padding": 12, "border": "1px solid {color.border}", "borderRadius": 4 }, "children": [
+                  { "type": "text", "text": "John", "style": { "color": "{color.text-primary}" } }
+                ]}
+              ]
+            },
+            {
+              "type": "frame",
+              "layout": { "direction": "column", "gap": 4 },
+              "style": { "flex": 1 },
+              "children": [
+                { "type": "text", "text": "Last Name", "style": { "fontSize": 12, "color": "{color.text-secondary}" } },
+                { "type": "frame", "style": { "padding": 12, "border": "1px solid {color.border}", "borderRadius": 4 }, "children": [
+                  { "type": "text", "text": "Doe", "style": { "color": "{color.text-primary}" } }
+                ]}
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "layout": { "direction": "column", "gap": 4 },
+          "children": [
+            { "type": "text", "text": "Address", "style": { "fontSize": 12, "color": "{color.text-secondary}" } },
+            { "type": "frame", "style": { "padding": 12, "border": "1px solid {color.border}", "borderRadius": 4 }, "children": [
+              { "type": "text", "text": "123 Main Street", "style": { "color": "{color.text-primary}" } }
+            ]}
+          ]
+        },
+        {
+          "type": "frame",
+          "layout": { "direction": "row", "gap": 16 },
+          "children": [
+            {
+              "type": "frame",
+              "layout": { "direction": "column", "gap": 4 },
+              "style": { "flex": 2 },
+              "children": [
+                { "type": "text", "text": "City", "style": { "fontSize": 12, "color": "{color.text-secondary}" } },
+                { "type": "frame", "style": { "padding": 12, "border": "1px solid {color.border}", "borderRadius": 4 }, "children": [
+                  { "type": "text", "text": "New York", "style": { "color": "{color.text-primary}" } }
+                ]}
+              ]
+            },
+            {
+              "type": "frame",
+              "layout": { "direction": "column", "gap": 4 },
+              "style": { "flex": 1 },
+              "children": [
+                { "type": "text", "text": "State", "style": { "fontSize": 12, "color": "{color.text-secondary}" } },
+                { "type": "frame", "style": { "padding": 12, "border": "1px solid {color.border}", "borderRadius": 4 }, "children": [
+                  { "type": "text", "text": "NY", "style": { "color": "{color.text-primary}" } }
+                ]}
+              ]
+            },
+            {
+              "type": "frame",
+              "layout": { "direction": "column", "gap": 4 },
+              "style": { "flex": 1 },
+              "children": [
+                { "type": "text", "text": "ZIP", "style": { "fontSize": 12, "color": "{color.text-secondary}" } },
+                { "type": "frame", "style": { "padding": 12, "border": "1px solid {color.border}", "borderRadius": 4 }, "children": [
+                  { "type": "text", "text": "10001", "style": { "color": "{color.text-primary}" } }
+                ]}
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

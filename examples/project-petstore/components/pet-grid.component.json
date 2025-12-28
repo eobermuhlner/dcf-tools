@@ -1,0 +1,35 @@
+{
+  "dcf_version": "1.0.0",
+  "kind": "component",
+  "profile": "standard",
+  "name": "PetGrid",
+  "props": {
+    "pets": { "type": "array" },
+    "sort": { "type": "string" }
+  },
+  "content": [
+    {
+      "type": "frame",
+      "layout": { "direction": "row", "gap": 16, "wrap": true },
+      "style": { "padding": 16 },
+      "children": [
+        {
+          "component": "PetCard",
+          "props": { "pet": { "name": "Max", "breed": "Labrador", "price": 450 } }
+        },
+        {
+          "component": "PetCard",
+          "props": { "pet": { "name": "Luna", "breed": "Siamese", "price": 350 } }
+        },
+        {
+          "component": "PetCard",
+          "props": { "pet": { "name": "Charlie", "breed": "Beagle", "price": 400 } }
+        },
+        {
+          "component": "PetCard",
+          "props": { "pet": { "name": "Bella", "breed": "Maine Coon", "price": 500 } }
+        }
+      ]
+    }
+  ]
+}

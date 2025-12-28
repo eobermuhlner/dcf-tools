@@ -8,12 +8,26 @@
     "value": { "type": "string" },
     "showFilters": { "type": "boolean" }
   },
-  "layout": {
-    "display": "flex",
-    "gap": "{space.md}",
-    "padding": "{space.md}",
-    "backgroundColor": "{color.surface}",
-    "borderRadius": "{radius.lg}",
-    "border": "1px solid {color.border}"
-  }
+  "content": [
+    {
+      "type": "frame",
+      "layout": { "direction": "row", "gap": 8, "align": "center" },
+      "style": {
+        "padding": 12,
+        "backgroundColor": "{color.surface}",
+        "borderRadius": 8,
+        "border": "1px solid {color.border}"
+      },
+      "children": [
+        { "type": "text", "text": "Search pets...", "style": { "flex": 1, "color": "{color.text-muted}" } },
+        {
+          "type": "frame",
+          "style": { "padding": 8, "backgroundColor": "{color.primary}", "borderRadius": 4 },
+          "children": [
+            { "type": "text", "text": "Search", "style": { "color": "{color.text-inverse}", "fontSize": 14 } }
+          ]
+        }
+      ]
+    }
+  ]
 }

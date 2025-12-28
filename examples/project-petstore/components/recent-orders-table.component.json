@@ -1,0 +1,85 @@
+{
+  "dcf_version": "1.0.0",
+  "kind": "component",
+  "profile": "standard",
+  "name": "RecentOrdersTable",
+  "props": {
+    "orders": { "type": "array" }
+  },
+  "content": [
+    {
+      "type": "frame",
+      "layout": { "direction": "column", "gap": 12 },
+      "style": { "padding": 16, "backgroundColor": "{color.surface}", "borderRadius": 8 },
+      "children": [
+        { "type": "text", "text": "Recent Orders", "style": { "fontSize": 18, "fontWeight": "bold", "color": "{color.text-primary}" } },
+        {
+          "type": "frame",
+          "layout": { "direction": "column" },
+          "style": { "border": "1px solid {color.border}", "borderRadius": 4, "overflow": "hidden" },
+          "children": [
+            {
+              "type": "frame",
+              "layout": { "direction": "row" },
+              "style": { "backgroundColor": "{color.surface}", "borderBottom": "1px solid {color.border}" },
+              "children": [
+                { "type": "text", "text": "Order ID", "style": { "flex": 1, "padding": 12, "fontWeight": "bold", "fontSize": 12, "color": "{color.text-secondary}" } },
+                { "type": "text", "text": "Customer", "style": { "flex": 2, "padding": 12, "fontWeight": "bold", "fontSize": 12, "color": "{color.text-secondary}" } },
+                { "type": "text", "text": "Pet", "style": { "flex": 2, "padding": 12, "fontWeight": "bold", "fontSize": 12, "color": "{color.text-secondary}" } },
+                { "type": "text", "text": "Amount", "style": { "flex": 1, "padding": 12, "fontWeight": "bold", "fontSize": 12, "color": "{color.text-secondary}" } },
+                { "type": "text", "text": "Status", "style": { "flex": 1, "padding": 12, "fontWeight": "bold", "fontSize": 12, "color": "{color.text-secondary}" } }
+              ]
+            },
+            {
+              "type": "frame",
+              "layout": { "direction": "row", "align": "center" },
+              "style": { "borderBottom": "1px solid {color.border}" },
+              "children": [
+                { "type": "text", "text": "#1234", "style": { "flex": 1, "padding": 12, "fontSize": 14 } },
+                { "type": "text", "text": "John Doe", "style": { "flex": 2, "padding": 12, "fontSize": 14 } },
+                { "type": "text", "text": "Golden Retriever", "style": { "flex": 2, "padding": 12, "fontSize": 14 } },
+                { "type": "text", "text": "$499", "style": { "flex": 1, "padding": 12, "fontSize": 14, "fontWeight": "bold" } },
+                { "type": "frame", "style": { "flex": 1, "padding": 12 }, "children": [
+                  { "type": "frame", "style": { "padding": 4, "paddingLeft": 8, "paddingRight": 8, "backgroundColor": "{color.success}", "borderRadius": 12 }, "children": [
+                    { "type": "text", "text": "Completed", "style": { "fontSize": 11, "color": "{color.text-inverse}" } }
+                  ]}
+                ]}
+              ]
+            },
+            {
+              "type": "frame",
+              "layout": { "direction": "row", "align": "center" },
+              "style": { "borderBottom": "1px solid {color.border}" },
+              "children": [
+                { "type": "text", "text": "#1235", "style": { "flex": 1, "padding": 12, "fontSize": 14 } },
+                { "type": "text", "text": "Jane Smith", "style": { "flex": 2, "padding": 12, "fontSize": 14 } },
+                { "type": "text", "text": "Persian Cat", "style": { "flex": 2, "padding": 12, "fontSize": 14 } },
+                { "type": "text", "text": "$299", "style": { "flex": 1, "padding": 12, "fontSize": 14, "fontWeight": "bold" } },
+                { "type": "frame", "style": { "flex": 1, "padding": 12 }, "children": [
+                  { "type": "frame", "style": { "padding": 4, "paddingLeft": 8, "paddingRight": 8, "backgroundColor": "{color.warning}", "borderRadius": 12 }, "children": [
+                    { "type": "text", "text": "Processing", "style": { "fontSize": 11, "color": "{color.text-primary}" } }
+                  ]}
+                ]}
+              ]
+            },
+            {
+              "type": "frame",
+              "layout": { "direction": "row", "align": "center" },
+              "children": [
+                { "type": "text", "text": "#1236", "style": { "flex": 1, "padding": 12, "fontSize": 14 } },
+                { "type": "text", "text": "Bob Wilson", "style": { "flex": 2, "padding": 12, "fontSize": 14 } },
+                { "type": "text", "text": "Beagle", "style": { "flex": 2, "padding": 12, "fontSize": 14 } },
+                { "type": "text", "text": "$399", "style": { "flex": 1, "padding": 12, "fontSize": 14, "fontWeight": "bold" } },
+                { "type": "frame", "style": { "flex": 1, "padding": 12 }, "children": [
+                  { "type": "frame", "style": { "padding": 4, "paddingLeft": 8, "paddingRight": 8, "backgroundColor": "{color.info}", "borderRadius": 12 }, "children": [
+                    { "type": "text", "text": "Pending", "style": { "fontSize": 11, "color": "{color.text-inverse}" } }
+                  ]}
+                ]}
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

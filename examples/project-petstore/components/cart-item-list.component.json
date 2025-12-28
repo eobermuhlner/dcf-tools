@@ -1,0 +1,26 @@
+{
+  "dcf_version": "1.0.0",
+  "kind": "component",
+  "profile": "standard",
+  "name": "CartItemList",
+  "props": {
+    "items": { "type": "array" }
+  },
+  "content": [
+    {
+      "type": "frame",
+      "layout": { "direction": "column", "gap": 12 },
+      "style": { "padding": 16 },
+      "children": [
+        {
+          "component": "CartItem",
+          "props": { "item": { "name": "Buddy", "breed": "Golden Retriever", "price": 499, "quantity": 1 } }
+        },
+        {
+          "component": "CartItem",
+          "props": { "item": { "name": "Whiskers", "breed": "Persian Cat", "price": 299, "quantity": 1 } }
+        }
+      ]
+    }
+  ]
+}

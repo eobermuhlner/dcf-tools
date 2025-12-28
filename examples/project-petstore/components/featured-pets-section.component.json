@@ -1,0 +1,115 @@
+{
+  "dcf_version": "1.0.0",
+  "kind": "component",
+  "profile": "standard",
+  "name": "FeaturedPetsSection",
+  "props": {
+    "title": { "type": "string" },
+    "pets": { "type": "array" }
+  },
+  "content": [
+    {
+      "type": "frame",
+      "layout": { "direction": "column", "gap": 16 },
+      "style": { "padding": 16, "backgroundColor": "{color.surface}" },
+      "children": [
+        {
+          "type": "text",
+          "text": "$props.title",
+          "style": {
+            "fontSize": 24,
+            "fontWeight": "bold",
+            "color": "{color.text-primary}"
+          }
+        },
+        {
+          "type": "frame",
+          "layout": { "direction": "row", "gap": 16, "wrap": true },
+          "children": [
+            {
+              "type": "frame",
+              "style": {
+                "width": 200,
+                "backgroundColor": "{color.surface-elevated}",
+                "borderRadius": 8,
+                "overflow": "hidden",
+                "boxShadow": "0 2px 8px rgba(0,0,0,0.1)"
+              },
+              "layout": { "direction": "column" },
+              "children": [
+                {
+                  "type": "frame",
+                  "style": { "height": 120, "backgroundColor": "{color.border}" }
+                },
+                {
+                  "type": "frame",
+                  "style": { "padding": 12 },
+                  "layout": { "direction": "column", "gap": 4 },
+                  "children": [
+                    { "type": "text", "text": "Buddy", "style": { "fontWeight": "bold", "color": "{color.text-primary}" } },
+                    { "type": "text", "text": "Golden Retriever", "style": { "fontSize": 12, "color": "{color.text-secondary}" } },
+                    { "type": "text", "text": "$499", "style": { "fontWeight": "bold", "color": "{color.primary}" } }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "style": {
+                "width": 200,
+                "backgroundColor": "{color.surface-elevated}",
+                "borderRadius": 8,
+                "overflow": "hidden",
+                "boxShadow": "0 2px 8px rgba(0,0,0,0.1)"
+              },
+              "layout": { "direction": "column" },
+              "children": [
+                {
+                  "type": "frame",
+                  "style": { "height": 120, "backgroundColor": "{color.border}" }
+                },
+                {
+                  "type": "frame",
+                  "style": { "padding": 12 },
+                  "layout": { "direction": "column", "gap": 4 },
+                  "children": [
+                    { "type": "text", "text": "Whiskers", "style": { "fontWeight": "bold", "color": "{color.text-primary}" } },
+                    { "type": "text", "text": "Persian Cat", "style": { "fontSize": 12, "color": "{color.text-secondary}" } },
+                    { "type": "text", "text": "$299", "style": { "fontWeight": "bold", "color": "{color.primary}" } }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "style": {
+                "width": 200,
+                "backgroundColor": "{color.surface-elevated}",
+                "borderRadius": 8,
+                "overflow": "hidden",
+                "boxShadow": "0 2px 8px rgba(0,0,0,0.1)"
+              },
+              "layout": { "direction": "column" },
+              "children": [
+                {
+                  "type": "frame",
+                  "style": { "height": 120, "backgroundColor": "{color.border}" }
+                },
+                {
+                  "type": "frame",
+                  "style": { "padding": 12 },
+                  "layout": { "direction": "column", "gap": 4 },
+                  "children": [
+                    { "type": "text", "text": "Tweety", "style": { "fontWeight": "bold", "color": "{color.text-primary}" } },
+                    { "type": "text", "text": "Canary", "style": { "fontSize": 12, "color": "{color.text-secondary}" } },
+                    { "type": "text", "text": "$79", "style": { "fontWeight": "bold", "color": "{color.primary}" } }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

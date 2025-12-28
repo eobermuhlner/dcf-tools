@@ -6,13 +6,61 @@
   "props": {
     "item": { "type": "object" }
   },
-  "layout": {
-    "display": "flex",
-    "alignItems": "center",
-    "gap": "{space.md}",
-    "padding": "{space.md}",
-    "backgroundColor": "{color.surface-elevated}",
-    "borderRadius": "{radius.md}",
-    "border": "1px solid {color.border}"
-  }
+  "content": [
+    {
+      "type": "frame",
+      "layout": { "direction": "row", "gap": 16, "align": "center" },
+      "style": { "padding": 16, "backgroundColor": "{color.surface}", "borderRadius": 8 },
+      "children": [
+        {
+          "type": "frame",
+          "style": { "width": 80, "height": 80, "backgroundColor": "{color.border}", "borderRadius": 8 },
+          "layout": { "align": "center", "justify": "center" },
+          "children": [
+            { "type": "text", "text": "Img", "style": { "color": "{color.text-muted}", "fontSize": 12 } }
+          ]
+        },
+        {
+          "type": "frame",
+          "layout": { "direction": "column", "gap": 4 },
+          "style": { "flex": 1 },
+          "children": [
+            { "type": "text", "text": "$props.item.name", "style": { "fontWeight": "bold", "color": "{color.text-primary}" } },
+            { "type": "text", "text": "$props.item.breed", "style": { "fontSize": 12, "color": "{color.text-secondary}" } }
+          ]
+        },
+        {
+          "type": "frame",
+          "layout": { "direction": "row", "gap": 8, "align": "center" },
+          "children": [
+            {
+              "type": "frame",
+              "style": { "width": 32, "height": 32, "border": "1px solid {color.border}", "borderRadius": 4 },
+              "layout": { "align": "center", "justify": "center" },
+              "children": [
+                { "type": "text", "text": "-", "style": { "fontSize": 18, "color": "{color.text-primary}" } }
+              ]
+            },
+            { "type": "text", "text": "1", "style": { "fontWeight": "bold", "minWidth": 24, "textAlign": "center" } },
+            {
+              "type": "frame",
+              "style": { "width": 32, "height": 32, "border": "1px solid {color.border}", "borderRadius": 4 },
+              "layout": { "align": "center", "justify": "center" },
+              "children": [
+                { "type": "text", "text": "+", "style": { "fontSize": 18, "color": "{color.text-primary}" } }
+              ]
+            }
+          ]
+        },
+        { "type": "text", "text": "$499", "style": { "fontWeight": "bold", "color": "{color.primary}", "minWidth": 80, "textAlign": "right" } },
+        {
+          "type": "frame",
+          "style": { "padding": 8, "cursor": "pointer" },
+          "children": [
+            { "type": "text", "text": "X", "style": { "color": "{color.error}", "fontWeight": "bold" } }
+          ]
+        }
+      ]
+    }
+  ]
 }

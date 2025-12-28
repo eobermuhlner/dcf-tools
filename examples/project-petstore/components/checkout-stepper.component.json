@@ -1,0 +1,71 @@
+{
+  "dcf_version": "1.0.0",
+  "kind": "component",
+  "profile": "standard",
+  "name": "CheckoutStepper",
+  "props": {
+    "steps": { "type": "array" }
+  },
+  "content": [
+    {
+      "type": "frame",
+      "layout": { "direction": "row", "justify": "center", "align": "center", "gap": 24 },
+      "style": { "padding": 24 },
+      "children": [
+        {
+          "type": "frame",
+          "layout": { "direction": "column", "align": "center", "gap": 4 },
+          "children": [
+            {
+              "type": "frame",
+              "style": { "width": 32, "height": 32, "backgroundColor": "{color.primary}", "borderRadius": 16 },
+              "layout": { "align": "center", "justify": "center" },
+              "children": [
+                { "type": "text", "text": "1", "style": { "color": "{color.text-inverse}", "fontWeight": "bold" } }
+              ]
+            },
+            { "type": "text", "text": "Shipping", "style": { "fontSize": 12, "color": "{color.primary}", "fontWeight": "bold" } }
+          ]
+        },
+        {
+          "type": "frame",
+          "style": { "width": 60, "height": 2, "backgroundColor": "{color.border}" }
+        },
+        {
+          "type": "frame",
+          "layout": { "direction": "column", "align": "center", "gap": 4 },
+          "children": [
+            {
+              "type": "frame",
+              "style": { "width": 32, "height": 32, "border": "2px solid {color.border}", "borderRadius": 16 },
+              "layout": { "align": "center", "justify": "center" },
+              "children": [
+                { "type": "text", "text": "2", "style": { "color": "{color.text-muted}" } }
+              ]
+            },
+            { "type": "text", "text": "Payment", "style": { "fontSize": 12, "color": "{color.text-muted}" } }
+          ]
+        },
+        {
+          "type": "frame",
+          "style": { "width": 60, "height": 2, "backgroundColor": "{color.border}" }
+        },
+        {
+          "type": "frame",
+          "layout": { "direction": "column", "align": "center", "gap": 4 },
+          "children": [
+            {
+              "type": "frame",
+              "style": { "width": 32, "height": 32, "border": "2px solid {color.border}", "borderRadius": 16 },
+              "layout": { "align": "center", "justify": "center" },
+              "children": [
+                { "type": "text", "text": "3", "style": { "color": "{color.text-muted}" } }
+              ]
+            },
+            { "type": "text", "text": "Review", "style": { "fontSize": 12, "color": "{color.text-muted}" } }
+          ]
+        }
+      ]
+    }
+  ]
+}

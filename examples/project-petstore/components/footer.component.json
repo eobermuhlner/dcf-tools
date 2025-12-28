@@ -6,9 +6,55 @@
   "props": {
     "copyright": { "type": "string" }
   },
-  "layout": {
-    "backgroundColor": "{color.text-primary}",
-    "color": "{color.text-inverse}",
-    "padding": "{space.xxl} {space.xl}"
-  }
+  "content": [
+    {
+      "type": "frame",
+      "layout": { "direction": "column", "gap": 24 },
+      "style": { "padding": 32, "backgroundColor": "{color.text-primary}" },
+      "children": [
+        {
+          "type": "frame",
+          "layout": { "direction": "row", "justify": "space-between" },
+          "children": [
+            {
+              "type": "frame",
+              "layout": { "direction": "column", "gap": 8 },
+              "children": [
+                { "type": "text", "text": "PetStore", "style": { "fontSize": 20, "fontWeight": "bold", "color": "{color.text-inverse}" } },
+                { "type": "text", "text": "Find your perfect companion", "style": { "color": "{color.text-muted}" } }
+              ]
+            },
+            {
+              "type": "frame",
+              "layout": { "direction": "column", "gap": 8 },
+              "children": [
+                { "type": "text", "text": "Quick Links", "style": { "fontWeight": "bold", "color": "{color.text-inverse}" } },
+                { "type": "text", "text": "Home", "style": { "color": "{color.text-muted}" } },
+                { "type": "text", "text": "Pets", "style": { "color": "{color.text-muted}" } },
+                { "type": "text", "text": "Contact", "style": { "color": "{color.text-muted}" } }
+              ]
+            },
+            {
+              "type": "frame",
+              "layout": { "direction": "column", "gap": 8 },
+              "children": [
+                { "type": "text", "text": "Support", "style": { "fontWeight": "bold", "color": "{color.text-inverse}" } },
+                { "type": "text", "text": "FAQ", "style": { "color": "{color.text-muted}" } },
+                { "type": "text", "text": "Shipping", "style": { "color": "{color.text-muted}" } },
+                { "type": "text", "text": "Returns", "style": { "color": "{color.text-muted}" } }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "style": { "paddingTop": 16, "borderTop": "1px solid {color.text-secondary}" },
+          "layout": { "align": "center" },
+          "children": [
+            { "type": "text", "text": "2024 PetStore. All rights reserved.", "style": { "fontSize": 12, "color": "{color.text-muted}" } }
+          ]
+        }
+      ]
+    }
+  ]
 }

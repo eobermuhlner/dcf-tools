@@ -1,0 +1,59 @@
+{
+  "dcf_version": "1.0.0",
+  "kind": "component",
+  "profile": "standard",
+  "name": "PetFilters",
+  "props": {
+    "categories": { "type": "array" },
+    "currentCategory": { "type": "string" },
+    "currentStatus": { "type": "string" }
+  },
+  "content": [
+    {
+      "type": "frame",
+      "layout": { "direction": "row", "gap": 16, "align": "center" },
+      "style": { "padding": 16, "backgroundColor": "{color.surface}", "borderRadius": 8 },
+      "children": [
+        {
+          "type": "frame",
+          "layout": { "direction": "column", "gap": 4 },
+          "children": [
+            { "type": "text", "text": "Category", "style": { "fontSize": 12, "color": "{color.text-secondary}" } },
+            {
+              "type": "frame",
+              "style": { "padding": 8, "border": "1px solid {color.border}", "borderRadius": 4, "minWidth": 120 },
+              "children": [
+                { "type": "text", "text": "All Categories", "style": { "color": "{color.text-primary}" } }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "layout": { "direction": "column", "gap": 4 },
+          "children": [
+            { "type": "text", "text": "Status", "style": { "fontSize": 12, "color": "{color.text-secondary}" } },
+            {
+              "type": "frame",
+              "style": { "padding": 8, "border": "1px solid {color.border}", "borderRadius": 4, "minWidth": 120 },
+              "children": [
+                { "type": "text", "text": "Available", "style": { "color": "{color.text-primary}" } }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "style": { "flex": 1 }
+        },
+        {
+          "type": "frame",
+          "style": { "padding": 8, "backgroundColor": "{color.primary}", "borderRadius": 4, "cursor": "pointer" },
+          "children": [
+            { "type": "text", "text": "Apply Filters", "style": { "color": "{color.text-inverse}", "fontWeight": "bold" } }
+          ]
+        }
+      ]
+    }
+  ]
+}

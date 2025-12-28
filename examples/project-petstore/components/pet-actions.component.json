@@ -1,0 +1,61 @@
+{
+  "dcf_version": "1.0.0",
+  "kind": "component",
+  "profile": "standard",
+  "name": "PetActions",
+  "props": {
+    "petId": { "type": "string" },
+    "status": { "type": "string" },
+    "price": { "type": "number" }
+  },
+  "content": [
+    {
+      "type": "frame",
+      "layout": { "direction": "column", "gap": 16 },
+      "style": { "padding": 16, "backgroundColor": "{color.surface}", "borderRadius": 12 },
+      "children": [
+        {
+          "type": "frame",
+          "layout": { "direction": "row", "align": "center", "justify": "space-between" },
+          "children": [
+            { "type": "text", "text": "Price", "style": { "fontSize": 14, "color": "{color.text-secondary}" } },
+            { "type": "text", "text": "$499.00", "style": { "fontSize": 28, "fontWeight": "bold", "color": "{color.primary}" } }
+          ]
+        },
+        {
+          "type": "frame",
+          "layout": { "direction": "row", "gap": 12 },
+          "children": [
+            {
+              "type": "frame",
+              "style": {
+                "flex": 1,
+                "padding": 12,
+                "backgroundColor": "{color.primary}",
+                "borderRadius": 8,
+                "cursor": "pointer"
+              },
+              "layout": { "align": "center", "justify": "center" },
+              "children": [
+                { "type": "text", "text": "Add to Cart", "style": { "color": "{color.text-inverse}", "fontWeight": "bold" } }
+              ]
+            },
+            {
+              "type": "frame",
+              "style": {
+                "padding": 12,
+                "border": "1px solid {color.border}",
+                "borderRadius": 8,
+                "cursor": "pointer"
+              },
+              "layout": { "align": "center", "justify": "center" },
+              "children": [
+                { "type": "text", "text": "♡", "style": { "fontSize": 20, "color": "{color.error}" } }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

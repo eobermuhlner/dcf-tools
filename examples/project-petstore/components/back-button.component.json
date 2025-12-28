@@ -1,0 +1,32 @@
+{
+  "dcf_version": "1.0.0",
+  "kind": "component",
+  "profile": "standard",
+  "name": "BackButton",
+  "props": {
+    "to": { "type": "string" },
+    "label": { "type": "string" }
+  },
+  "content": [
+    {
+      "type": "frame",
+      "layout": { "direction": "row", "align": "center", "gap": 8 },
+      "style": {
+        "padding": 8,
+        "cursor": "pointer"
+      },
+      "children": [
+        {
+          "type": "text",
+          "text": "<",
+          "style": { "fontSize": 16, "color": "{color.primary}" }
+        },
+        {
+          "type": "text",
+          "text": "$props.label",
+          "style": { "fontSize": 14, "color": "{color.primary}" }
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,66 @@
+{
+  "dcf_version": "1.0.0",
+  "kind": "component",
+  "profile": "standard",
+  "name": "HeroSection",
+  "props": {
+    "title": { "type": "string" },
+    "subtitle": { "type": "string" },
+    "ctaLabel": { "type": "string" },
+    "ctaLink": { "type": "string" }
+  },
+  "content": [
+    {
+      "type": "frame",
+      "layout": { "direction": "column", "align": "center", "justify": "center", "gap": 16 },
+      "style": {
+        "padding": 48,
+        "backgroundColor": "{color.primary}",
+        "borderRadius": 12
+      },
+      "children": [
+        {
+          "type": "text",
+          "text": "$props.title",
+          "style": {
+            "fontSize": 36,
+            "fontWeight": "bold",
+            "color": "{color.text-inverse}",
+            "textAlign": "center"
+          }
+        },
+        {
+          "type": "text",
+          "text": "$props.subtitle",
+          "style": {
+            "fontSize": 18,
+            "color": "{color.text-inverse}",
+            "textAlign": "center"
+          }
+        },
+        {
+          "type": "frame",
+          "style": {
+            "padding": 12,
+            "paddingLeft": 24,
+            "paddingRight": 24,
+            "backgroundColor": "{color.text-inverse}",
+            "borderRadius": 8,
+            "cursor": "pointer"
+          },
+          "children": [
+            {
+              "type": "text",
+              "text": "$props.ctaLabel",
+              "style": {
+                "fontSize": 16,
+                "fontWeight": "bold",
+                "color": "{color.primary}"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

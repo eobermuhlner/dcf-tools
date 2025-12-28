@@ -7,12 +7,45 @@
     "user": { "type": "object" },
     "cartItemCount": { "type": "number" }
   },
-  "layout": {
-    "display": "flex",
-    "alignItems": "center",
-    "justifyContent": "space-between",
-    "padding": "{space.md} {space.xl}",
-    "backgroundColor": "{color.surface-elevated}",
-    "borderBottom": "1px solid {color.border}"
-  }
+  "content": [
+    {
+      "type": "frame",
+      "layout": { "direction": "row", "align": "center", "justify": "space-between" },
+      "style": {
+        "padding": 16,
+        "backgroundColor": "{color.surface-elevated}",
+        "borderBottom": "1px solid {color.border}"
+      },
+      "children": [
+        {
+          "type": "text",
+          "text": "PetStore",
+          "style": { "fontSize": 24, "fontWeight": "bold", "color": "{color.primary}" }
+        },
+        {
+          "type": "frame",
+          "layout": { "direction": "row", "gap": 24, "align": "center" },
+          "children": [
+            { "type": "text", "text": "Home", "style": { "color": "{color.text-primary}" } },
+            { "type": "text", "text": "Pets", "style": { "color": "{color.text-primary}" } },
+            { "type": "text", "text": "About", "style": { "color": "{color.text-secondary}" } },
+            {
+              "type": "frame",
+              "layout": { "direction": "row", "align": "center", "gap": 4 },
+              "children": [
+                { "type": "text", "text": "Cart", "style": { "color": "{color.text-primary}" } },
+                {
+                  "type": "frame",
+                  "style": { "padding": 2, "paddingLeft": 6, "paddingRight": 6, "backgroundColor": "{color.primary}", "borderRadius": 10 },
+                  "children": [
+                    { "type": "text", "text": "2", "style": { "fontSize": 12, "color": "{color.text-inverse}" } }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
 }

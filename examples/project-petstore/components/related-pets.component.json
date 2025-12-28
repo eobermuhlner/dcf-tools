@@ -1,0 +1,64 @@
+{
+  "dcf_version": "1.0.0",
+  "kind": "component",
+  "profile": "standard",
+  "name": "RelatedPets",
+  "props": {
+    "title": { "type": "string" },
+    "pets": { "type": "array" }
+  },
+  "content": [
+    {
+      "type": "frame",
+      "layout": { "direction": "column", "gap": 16 },
+      "style": { "padding": 16 },
+      "children": [
+        {
+          "type": "text",
+          "text": "$props.title",
+          "style": { "fontSize": 20, "fontWeight": "bold", "color": "{color.text-primary}" }
+        },
+        {
+          "type": "frame",
+          "layout": { "direction": "row", "gap": 12 },
+          "children": [
+            {
+              "type": "frame",
+              "style": { "width": 150, "backgroundColor": "{color.surface}", "borderRadius": 8, "overflow": "hidden" },
+              "layout": { "direction": "column" },
+              "children": [
+                { "type": "frame", "style": { "height": 100, "backgroundColor": "{color.border}" } },
+                {
+                  "type": "frame",
+                  "style": { "padding": 8 },
+                  "layout": { "direction": "column", "gap": 2 },
+                  "children": [
+                    { "type": "text", "text": "Rocky", "style": { "fontWeight": "bold", "fontSize": 14 } },
+                    { "type": "text", "text": "$399", "style": { "color": "{color.primary}", "fontSize": 12 } }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "style": { "width": 150, "backgroundColor": "{color.surface}", "borderRadius": 8, "overflow": "hidden" },
+              "layout": { "direction": "column" },
+              "children": [
+                { "type": "frame", "style": { "height": 100, "backgroundColor": "{color.border}" } },
+                {
+                  "type": "frame",
+                  "style": { "padding": 8 },
+                  "layout": { "direction": "column", "gap": 2 },
+                  "children": [
+                    { "type": "text", "text": "Daisy", "style": { "fontWeight": "bold", "fontSize": 14 } },
+                    { "type": "text", "text": "$449", "style": { "color": "{color.primary}", "fontSize": 12 } }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

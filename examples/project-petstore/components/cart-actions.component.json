@@ -1,0 +1,35 @@
+{
+  "dcf_version": "1.0.0",
+  "kind": "component",
+  "profile": "standard",
+  "name": "CartActions",
+  "props": {
+    "checkoutUrl": { "type": "string" },
+    "continueShoppingUrl": { "type": "string" }
+  },
+  "content": [
+    {
+      "type": "frame",
+      "layout": { "direction": "row", "gap": 12 },
+      "style": { "padding": 16 },
+      "children": [
+        {
+          "type": "frame",
+          "style": { "flex": 1, "padding": 12, "border": "1px solid {color.border}", "borderRadius": 8, "cursor": "pointer" },
+          "layout": { "align": "center", "justify": "center" },
+          "children": [
+            { "type": "text", "text": "Continue Shopping", "style": { "color": "{color.text-primary}" } }
+          ]
+        },
+        {
+          "type": "frame",
+          "style": { "flex": 1, "padding": 12, "backgroundColor": "{color.primary}", "borderRadius": 8, "cursor": "pointer" },
+          "layout": { "align": "center", "justify": "center" },
+          "children": [
+            { "type": "text", "text": "Proceed to Checkout", "style": { "color": "{color.text-inverse}", "fontWeight": "bold" } }
+          ]
+        }
+      ]
+    }
+  ]
+}

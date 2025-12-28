@@ -6,15 +6,29 @@
   "props": {
     "category": { "type": "object" }
   },
-  "layout": {
-    "display": "flex",
-    "flexDirection": "column",
-    "alignItems": "center",
-    "justifyContent": "center",
-    "padding": "{space.xl}",
-    "backgroundColor": "{color.surface-elevated}",
-    "borderRadius": "{radius.xl}",
-    "boxShadow": "{shadow.sm}",
-    "cursor": "pointer"
-  }
+  "content": [
+    {
+      "type": "frame",
+      "layout": { "direction": "column", "align": "center", "gap": 8 },
+      "style": {
+        "width": 120,
+        "padding": 16,
+        "backgroundColor": "{color.surface-elevated}",
+        "borderRadius": 12,
+        "boxShadow": "0 2px 4px rgba(0,0,0,0.1)",
+        "cursor": "pointer"
+      },
+      "children": [
+        {
+          "type": "frame",
+          "style": { "width": 48, "height": 48, "backgroundColor": "{color.primary}", "borderRadius": 24 },
+          "layout": { "align": "center", "justify": "center" },
+          "children": [
+            { "type": "text", "text": "$props.category.icon", "style": { "fontSize": 24 } }
+          ]
+        },
+        { "type": "text", "text": "$props.category.name", "style": { "fontWeight": "bold", "color": "{color.text-primary}", "textAlign": "center" } }
+      ]
+    }
+  ]
 }

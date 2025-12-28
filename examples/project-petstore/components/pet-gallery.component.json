@@ -1,0 +1,50 @@
+{
+  "dcf_version": "1.0.0",
+  "kind": "component",
+  "profile": "standard",
+  "name": "PetGallery",
+  "props": {
+    "images": { "type": "array" },
+    "name": { "type": "string" }
+  },
+  "content": [
+    {
+      "type": "frame",
+      "layout": { "direction": "column", "gap": 8 },
+      "style": { "padding": 16 },
+      "children": [
+        {
+          "type": "frame",
+          "style": {
+            "height": 300,
+            "backgroundColor": "{color.surface}",
+            "borderRadius": 12,
+            "border": "1px solid {color.border}"
+          },
+          "layout": { "align": "center", "justify": "center" },
+          "children": [
+            { "type": "text", "text": "Pet Image", "style": { "color": "{color.text-muted}", "fontSize": 18 } }
+          ]
+        },
+        {
+          "type": "frame",
+          "layout": { "direction": "row", "gap": 8 },
+          "children": [
+            {
+              "type": "frame",
+              "style": { "width": 80, "height": 80, "backgroundColor": "{color.surface}", "borderRadius": 8, "border": "2px solid {color.primary}" }
+            },
+            {
+              "type": "frame",
+              "style": { "width": 80, "height": 80, "backgroundColor": "{color.surface}", "borderRadius": 8, "border": "1px solid {color.border}" }
+            },
+            {
+              "type": "frame",
+              "style": { "width": 80, "height": 80, "backgroundColor": "{color.surface}", "borderRadius": 8, "border": "1px solid {color.border}" }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

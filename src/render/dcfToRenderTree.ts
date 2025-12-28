@@ -240,9 +240,161 @@ function mapStyle(obj: any, tokens: any): Style | TextStyle | undefined {
   return textStyle;
 }
 
-function createRenderNode(obj: any, path: string[], tokens: any): RenderNode {
+// Render a resolved component with its props applied
+function renderResolvedComponent(
+  componentDef: any,
+  componentName: string,
+  props: any,
+  path: string[],
+  tokens: any,
+  components?: any
+): RenderNode {
+  const id = generateId(path);
+
+  // If component has content/children, render them
+  const content = componentDef.content || componentDef.children || componentDef.elements;
+
+  if (content && Array.isArray(content)) {
+    // Render each content item, applying props where referenced
+    const childNodes: RenderNode[] = [];
+
+    for (let i = 0; i < content.length; i++) {
+      const item = content[i];
+      if (item && typeof item === 'object') {
+        // Apply props to the content item
+        const resolvedItem = applyPropsToContent(item, props);
+        const childPath = [...path, componentName, i.toString()];
+        childNodes.push(createRenderNode(resolvedItem, childPath, tokens, components));
+      }
+    }
+
+    // Get component styles
+    const componentStyle = mapStyle(componentDef, tokens);
+    const componentLayout = mapLayout(componentDef);
+
+    return {
+      kind: "frame",
+      id,
+      layout: componentLayout || { type: "flex", direction: "column" },
+      style: componentStyle,
+      children: childNodes,
+      label: `Component: ${componentName}`
+    };
+  }
+
+  // Component has styles but no content structure - render as styled box with name
+  const componentStyle = componentDef.styles || componentDef.layout;
+  if (componentStyle) {
+    const resolvedStyles = resolveStyleTokens(componentStyle, tokens);
+
+    return {
+      kind: "frame",
+      id,
+      layout: { type: "flex", direction: "column", align: "center", justify: "center" },
+      style: {
+        ...resolvedStyles,
+        minWidth: resolvedStyles.width || 120,
+        minHeight: resolvedStyles.height || 60,
+        display: "inline-flex",
+        alignItems: "center",
+        justifyContent: "center"
+      },
+      children: [{
+        kind: "text",
+        id: `text-${id}`,
+        text: componentName,
+        style: {
+          color: resolvedStyles.color || "white",
+          fontWeight: resolvedStyles.fontWeight || "bold",
+          fontSize: resolvedStyles.fontSize || 14
+        }
+      }],
+      label: `Styled Component: ${componentName}`
+    };
+  }
+
+  // Fallback: show component name in a styled placeholder
+  return {
+    kind: "frame",
+    id,
+    layout: { type: "flex", direction: "column", align: "center", justify: "center" },
+    style: {
+      minWidth: 150,
+      minHeight: 50,
+      padding: 12,
+      backgroundColor: "#e3f2fd",
+      border: "2px solid #2196F3",
+      borderRadius: 8
+    },
+    children: [{
+      kind: "text",
+      id: `text-${id}`,
+      text: componentName,
+      style: {
+        color: "#1565C0",
+        fontWeight: "bold",
+        fontSize: 14
+      }
+    }],
+    label: `Component: ${componentName}`
+  };
+}
+
+// Apply props to a content item, resolving prop references like "$props.title"
+function applyPropsToContent(item: any, props: any): any {
+  if (typeof item === 'string') {
+    // Check if this is a prop reference
+    if (item.startsWith('$props.')) {
+      const propPath = item.slice(7); // Remove '$props.'
+      return getNestedValue(props, propPath) ?? item;
+    }
+    return item;
+  }
+
+  if (Array.isArray(item)) {
+    return item.map(i => applyPropsToContent(i, props));
+  }
+
+  if (typeof item === 'object' && item !== null) {
+    const resolved: any = {};
+    for (const [key, value] of Object.entries(item)) {
+      resolved[key] = applyPropsToContent(value, props);
+    }
+    return resolved;
+  }
+
+  return item;
+}
+
+// Get nested value from object using dot notation
+function getNestedValue(obj: any, path: string): any {
+  const parts = path.split('.');
+  let current = obj;
+  for (const part of parts) {
+    if (current && typeof current === 'object') {
+      current = current[part];
+    } else {
+      return undefined;
+    }
+  }
+  return current;
+}
+
+function createRenderNode(obj: any, path: string[], tokens: any, components?: any): RenderNode {
   // Generate a stable ID based on the path
   const id = generateId(path);
+
+  // Check if this is a component reference (has 'component' property pointing to a component name)
+  if (obj.component && typeof obj.component === 'string' && components) {
+    const componentName = obj.component;
+    const componentDef = components[componentName];
+
+    if (componentDef) {
+      // Found the component definition - render it with the provided props
+      return renderResolvedComponent(componentDef, componentName, obj.props || {}, path, tokens, components);
+    }
+    // Component not found - fall through to show placeholder
+  }
 
   // Try to determine the element type
   const type = getElementType(obj);
@@ -282,7 +434,7 @@ function createRenderNode(obj: any, path: string[], tokens: any): RenderNode {
       children.forEach((child, index) => {
         if (child && typeof child === 'object') {
           const childPath = [...path, index.toString()];
-          childNodes.push(createRenderNode(child, childPath, tokens));
+          childNodes.push(createRenderNode(child, childPath, tokens, components));
         }
       });
     }
@@ -344,7 +496,7 @@ function createRenderNode(obj: any, path: string[], tokens: any): RenderNode {
   }
 }
 
-export function dcfToRenderTree(dcfDocument: any): RenderNode {
+export function dcfToRenderTree(dcfDocument: any, allComponents?: any): RenderNode {
   if (!dcfDocument || typeof dcfDocument !== 'object') {
     return {
       kind: "unknown",
@@ -398,6 +550,9 @@ export function dcfToRenderTree(dcfDocument: any): RenderNode {
     }
   }
 
+  // Extract components for resolution (from document or passed in)
+  const components = allComponents || dcfDocument.components || dcfDocument.component || {};
+
   // First, try to find screens to render (highest priority)
   const screens = dcfDocument.screens || dcfDocument.screen;
   if (screens && typeof screens === 'object') {
@@ -414,7 +569,7 @@ export function dcfToRenderTree(dcfDocument: any): RenderNode {
           // If screen has content, use it, otherwise create a default structure
           content: firstScreen.content || []
         };
-        return createRenderNode(screenObj, ['root', 'screens', firstScreenName], tokens);
+        return createRenderNode(screenObj, ['root', 'screens', firstScreenName], tokens, components);
       }
     }
   }
@@ -453,19 +608,19 @@ export function dcfToRenderTree(dcfDocument: any): RenderNode {
       const [firstLayoutName, firstLayout] = layoutEntries[0]; // Render the first layout
       if (firstLayout && typeof firstLayout === 'object') {
         const layoutObj = { ...firstLayout, name: firstLayoutName, type: 'layout' };
-        return createRenderNode(layoutObj, ['root', 'layouts', firstLayoutName], tokens);
+        return createRenderNode(layoutObj, ['root', 'layouts', firstLayoutName], tokens, components);
       }
     }
   }
 
   // If no layouts, render components
-  let components = dcfDocument.components || dcfDocument.component;
+  const docComponents = dcfDocument.components || dcfDocument.component;
 
-  if (components && typeof components === 'object') {
+  if (docComponents && typeof docComponents === 'object') {
     // Handle both object (named) and array (indexed) structures for components
-    const componentEntries = Array.isArray(components)
-      ? components.map((comp, idx) => [idx.toString(), comp])
-      : Object.entries(components);
+    const componentEntries = Array.isArray(docComponents)
+      ? docComponents.map((comp, idx) => [idx.toString(), comp])
+      : Object.entries(docComponents);
 
     if (componentEntries.length > 0) {
       // Create a root frame containing all components for preview

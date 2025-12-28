@@ -1,0 +1,79 @@
+{
+  "dcf_version": "1.0.0",
+  "kind": "component",
+  "profile": "standard",
+  "name": "PetInfo",
+  "props": {
+    "pet": { "type": "object" }
+  },
+  "content": [
+    {
+      "type": "frame",
+      "layout": { "direction": "column", "gap": 16 },
+      "style": { "padding": 16 },
+      "children": [
+        {
+          "type": "text",
+          "text": "Buddy",
+          "style": { "fontSize": 32, "fontWeight": "bold", "color": "{color.text-primary}" }
+        },
+        {
+          "type": "frame",
+          "layout": { "direction": "row", "gap": 8 },
+          "children": [
+            {
+              "type": "frame",
+              "style": { "padding": 4, "paddingLeft": 8, "paddingRight": 8, "backgroundColor": "{color.success}", "borderRadius": 12 },
+              "children": [
+                { "type": "text", "text": "Available", "style": { "fontSize": 12, "color": "{color.text-inverse}" } }
+              ]
+            },
+            {
+              "type": "frame",
+              "style": { "padding": 4, "paddingLeft": 8, "paddingRight": 8, "backgroundColor": "{color.info}", "borderRadius": 12 },
+              "children": [
+                { "type": "text", "text": "Dog", "style": { "fontSize": 12, "color": "{color.text-inverse}" } }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "layout": { "direction": "column", "gap": 8 },
+          "style": { "padding": 16, "backgroundColor": "{color.surface}", "borderRadius": 8 },
+          "children": [
+            {
+              "type": "frame",
+              "layout": { "direction": "row", "justify": "space-between" },
+              "children": [
+                { "type": "text", "text": "Breed", "style": { "color": "{color.text-secondary}" } },
+                { "type": "text", "text": "Golden Retriever", "style": { "fontWeight": "bold", "color": "{color.text-primary}" } }
+              ]
+            },
+            {
+              "type": "frame",
+              "layout": { "direction": "row", "justify": "space-between" },
+              "children": [
+                { "type": "text", "text": "Age", "style": { "color": "{color.text-secondary}" } },
+                { "type": "text", "text": "2 years", "style": { "fontWeight": "bold", "color": "{color.text-primary}" } }
+              ]
+            },
+            {
+              "type": "frame",
+              "layout": { "direction": "row", "justify": "space-between" },
+              "children": [
+                { "type": "text", "text": "Gender", "style": { "color": "{color.text-secondary}" } },
+                { "type": "text", "text": "Male", "style": { "fontWeight": "bold", "color": "{color.text-primary}" } }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": "Buddy is a friendly and energetic Golden Retriever who loves to play fetch and go for long walks. He's great with children and other pets.",
+          "style": { "color": "{color.text-secondary}", "lineHeight": 1.6 }
+        }
+      ]
+    }
+  ]
+}
