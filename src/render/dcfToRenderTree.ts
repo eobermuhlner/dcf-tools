@@ -635,8 +635,7 @@ export function dcfToRenderTree(dcfDocument: any, allComponents?: any, allString
     if (layoutEntries.length > 0) {
       const [firstLayoutName, firstLayout] = layoutEntries[0]; // Render the first layout
       if (firstLayout && typeof firstLayout === 'object') {
-        const layoutObj = { ...firstLayout, name: firstLayoutName, type: 'layout' };
-        return createRenderNode(layoutObj, ['root', 'layouts', firstLayoutName], tokens, components, strings);
+        return createLayoutRenderTree(firstLayout, firstLayoutName, tokens, components, strings);
       }
     }
   }
@@ -1041,6 +1040,110 @@ function createFlowRenderTree(flow: any, name: string, tokens: any): RenderNode 
       ...stepNodes
     ],
     label: `Flow Preview: ${name}`
+  };
+}
+
+// Helper function to create a visual representation of layouts with regions
+function createLayoutRenderTree(layout: any, name: string, tokens: any, components?: any, strings?: any): RenderNode {
+  const regionNodes: RenderNode[] = [];
+
+  // Process regions if they exist
+  const regions = layout.regions || {};
+
+  // Sort regions by position: block-start first, then unspecified, then block-end
+  const sortedRegions = Object.entries(regions).sort(([, a], [, b]) => {
+    const posA = (a as any).position || 'middle';
+    const posB = (b as any).position || 'middle';
+    const order: Record<string, number> = { 'block-start': 0, 'middle': 1, 'block-end': 2 };
+    return (order[posA] ?? 1) - (order[posB] ?? 1);
+  });
+
+  for (const [regionName, regionData] of sortedRegions) {
+    const region = regionData as any;
+    const componentName = region.component;
+    const role = region.role || 'unknown';
+    const position = region.position || 'content';
+
+    let regionContent: RenderNode;
+
+    // If region references a component, try to resolve and render it
+    if (componentName && components && components[componentName]) {
+      const componentDef = components[componentName];
+      regionContent = renderResolvedComponent(
+        componentDef,
+        componentName,
+        {},
+        ['layout', name, regionName],
+        tokens,
+        components,
+        strings
+      );
+    } else if (componentName) {
+      // Component referenced but not found
+      regionContent = {
+        kind: "frame",
+        id: `region-${regionName}-placeholder`,
+        layout: { type: "flex", direction: "column", align: "center", justify: "center" },
+        style: {
+          padding: 16,
+          backgroundColor: "#e3f2fd",
+          border: "2px dashed #2196F3",
+          borderRadius: 4,
+          minHeight: 60
+        },
+        children: [{
+          kind: "text",
+          id: `region-${regionName}-text`,
+          text: `Component: ${componentName}`,
+          style: { color: "#1565C0", fontWeight: "bold", fontSize: 14 }
+        }],
+        label: `Missing Component: ${componentName}`
+      };
+    } else {
+      // Dynamic region without component (content placeholder)
+      regionContent = {
+        kind: "frame",
+        id: `region-${regionName}-dynamic`,
+        layout: { type: "flex", direction: "column", align: "center", justify: "center" },
+        style: {
+          padding: 24,
+          backgroundColor: "#f5f5f5",
+          border: "2px dashed #999",
+          borderRadius: 4,
+          minHeight: role === 'dynamic' ? 200 : 60
+        },
+        children: [{
+          kind: "text",
+          id: `region-${regionName}-label`,
+          text: `[${regionName}]`,
+          style: { color: "#666", fontStyle: "italic", fontSize: 14 }
+        }, {
+          kind: "text",
+          id: `region-${regionName}-role`,
+          text: `Role: ${role}`,
+          style: { color: "#999", fontSize: 12 }
+        }],
+        label: `Dynamic Region: ${regionName}`
+      };
+    }
+
+    regionNodes.push({
+      kind: "frame",
+      id: `region-wrapper-${regionName}`,
+      layout: { type: "flex", direction: "column" },
+      style: { width: "100%" },
+      children: [regionContent],
+      label: `Region: ${regionName}`
+    });
+  }
+
+  return {
+    kind: "frame",
+    id: "node-root",
+    layout: { type: "flex", direction: "column", gap: 0 },
+    style: { width: "100%", minHeight: 400, backgroundColor: "#fff", border: "1px solid #ddd" },
+    children: regionNodes,
+    label: `Layout: ${name}`
   };
 }
 
